@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<title>Almova Demo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Caveat:wght@600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a stage with a guided-steps bar on top, an iPhone in the middle. Below 520px the frame drops away and the app fills the real phone. */
+:root{
+  /* page (theme-aware) */
+  --bg:#E8EEEC; --surface:#FFFFFF; --ink:#13201E; --muted:#566764; --line:#CFDAD7;
+  --accent:#0F6E64; --accent-ink:#FFFFFF; --accent-soft:#D5ECE7;
+  /* app interior (fixed light, like a real app) */
+  --a-bg:#F4F7F6; --a-card:#FFFFFF; --a-ink:#13201E; --a-muted:#5E6E6B; --a-line:#E2E9E7;
+  --a-brand:#0F6E64; --a-brand-soft:#DCEFEA; --a-brand-ink:#FFFFFF;
+  --a-alert:#C9401F; --a-alert-soft:#FCE7E1;
+  --a-sun:#E9A21C; --a-sun-soft:#FDF0D3;
+  --a-sky:#2F6FCB; --a-sky-soft:#E1ECFB;
+  --a-ok:#1D8048; --a-ok-soft:#DCF2E4;
+  --a-plum:#8A4FB5; --a-plum-soft:#F0E6F8;
+  --bezel:#101213; --bezel-edge:#3A3F42;
+  --mail-blue:#0A6CFF;
+  --f-display:"Bricolage Grotesque", "Figtree", system-ui, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1514; --surface:#162120; --ink:#E4EDEB; --muted:#98ACA8; --line:#2A3A37;
+  --accent:#47BBA9; --accent-ink:#0B1A18; --accent-soft:#17332F; --bezel-edge:#4A5154; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0E1514; --surface:#162120; --ink:#E4EDEB; --muted:#98ACA8; --line:#2A3A37;
+  --accent:#47BBA9; --accent-ink:#0B1A18; --accent-soft:#17332F; --bezel-edge:#4A5154; color-scheme:dark; }
+
+html,body{height:100%}
+body{background:var(--bg); color:var(--ink); font-family:var(--f-body); -webkit-font-smoothing:antialiased;}
+*{box-sizing:border-box}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible, input:focus-visible, textarea:focus-visible{outline:3px solid var(--a-sky); outline-offset:2px}
+
+/* ---------- stage ---------- */
+.stage{min-height:100%; display:flex; flex-direction:column; gap:18px;
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:18px 28px;}
+.topbar{display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; max-width:1100px; width:100%; margin-inline:auto}
+.brand{display:flex; align-items:center; gap:10px; margin-right:auto}
+.brand b{font-family:var(--f-display); font-size:22px; letter-spacing:-.01em}
+.brand span{font-size:12px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:3px 9px}
+.seg{display:inline-flex; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:3px}
+.seg button{border:0; background:transparent; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink)}
+.ghost{border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:7px 13px; font-size:13px; font-weight:600}
+
+.steps{max-width:1100px; width:100%; margin-inline:auto; display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin}
+.step{flex:0 0 auto; display:flex; align-items:center; gap:8px; border:1px solid var(--line); background:var(--surface); border-radius:12px; padding:8px 12px 8px 8px; font-size:13px; font-weight:600; color:var(--muted)}
+.step i{font-style:normal; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:var(--bg); font-size:12px; font-variant-numeric:tabular-nums}
+.step[aria-current="step"]{border-color:var(--accent); color:var(--ink)}
+.step[aria-current="step"] i{background:var(--accent); color:var(--accent-ink)}
+.talk{max-width:1100px; width:100%; margin-inline:auto; display:flex; gap:14px; align-items:flex-start}
+.talk p{margin:0; font-size:15px; line-height:1.5; max-width:62ch; text-wrap:pretty}
+.talk small{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:3px; font-weight:700}
+.talk .nav{margin-left:auto; display:flex; gap:8px; flex:0 0 auto}
+
+.viewing{display:flex; justify-content:center; gap:10px; align-items:center; flex-wrap:wrap}
+.viewing label{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase}
+
+/* ---------- iPhone ---------- */
+.phone-wrap{display:flex; justify-content:center}
+.phone{width:min(390px,100%); aspect-ratio:390/812; background:var(--bezel); border-radius:58px; padding:11px; position:relative;
+  box-shadow:0 0 0 2px var(--bezel-edge), 0 30px 60px -20px rgba(0,0,0,.35)}
+.phone::before,.phone::after{content:""; position:absolute; width:3px; background:var(--bezel-edge); border-radius:2px; left:-4px}
+.phone::before{top:150px; height:56px} .phone::after{top:220px; height:56px}
+.screen{position:relative; width:100%; height:100%; border-radius:47px; overflow:hidden; background:var(--a-bg); color:var(--a-ink); display:flex; flex-direction:column; isolation:isolate}
+.island{position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; background:#000; border-radius:20px; z-index:30}
+.status{height:52px; flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between; padding:0 30px 8px 36px; font-weight:700; font-size:15px; z-index:20}
+.status .icons{display:flex; gap:6px; align-items:center}
+.status svg{display:block}
+.homebar{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; border-radius:3px; background:#111; opacity:.85; z-index:40}
+.app{flex:1; min-height:0; display:flex; flex-direction:column; position:relative}
+.scroll{flex:1; min-height:0; overflow-y:auto; padding:6px 18px 24px; scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* real phone: drop the frame */
+@media (max-width:520px){
+  .stage{padding-left:0; padding-right:0; padding-block:0; gap:0}
+  .topbar,.steps,.talk{padding-inline:max(14px, env(safe-area-inset-left,0px)) max(14px, env(safe-area-inset-right,0px))}
+  .topbar{padding-top:10px} .steps{padding-top:10px} .talk{padding-block:10px}
+  .viewing{padding:4px 14px 10px}
+  .phone{width:100%; aspect-ratio:auto; height:calc(100dvh - 0px); border-radius:0; padding:0; box-shadow:none; background:var(--a-bg)}
+  .phone::before,.phone::after,.island,.homebar{display:none}
+  .screen{border-radius:0}
+  .status{display:none}
+  body.present .topbar, body.present .steps, body.present .talk, body.present .viewing{display:none}
+}
+
+/* ---------- app components ---------- */
+.a-h1{font-family:var(--f-display); font-size:27px; line-height:1.1; letter-spacing:-.015em; margin:6px 0 2px; text-wrap:balance}
+.a-sub{color:var(--a-muted); font-size:14px; margin:0}
+.a-sec{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--a-muted); margin:22px 0 10px}
+.card{background:var(--a-card); border-radius:18px; padding:14px; border:1px solid var(--a-line)}
+.stack{display:flex; flex-direction:column; gap:10px}
+.row{display:flex; align-items:center; gap:12px}
+.grow{flex:1; min-width:0}
+.t-strong{font-weight:700; font-size:15px}
+.t-meta{font-size:13px; color:var(--a-muted)}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; border-radius:999px; padding:3px 9px; white-space:nowrap}
+.c-alert{background:var(--a-alert-soft); color:var(--a-alert)} .c-ok{background:var(--a-ok-soft); color:var(--a-ok)}
+.c-brand{background:var(--a-brand-soft); color:var(--a-brand)} .c-sun{background:var(--a-sun-soft); color:#94620A}
+.c-sky{background:var(--a-sky-soft); color:var(--a-sky)} .c-plum{background:var(--a-plum-soft); color:var(--a-plum)}
+.btn{border:0; border-radius:14px; padding:13px 16px; font-weight:700; font-size:15px; background:var(--a-brand); color:var(--a-brand-ink); width:100%}
+.btn.secondary{background:var(--a-brand-soft); color:var(--a-brand)}
+.btn.alert{background:var(--a-alert)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.datebox{width:46px; flex:0 0 46px; text-align:center; border-radius:12px; padding:6px 0; background:var(--a-bg)}
+.datebox b{display:block; font-family:var(--f-display); font-size:19px; line-height:1}
+.datebox span{font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--a-muted); letter-spacing:.05em}
+.dot{width:10px; height:10px; border-radius:50%; flex:0 0 10px}
+
+.urgent{background:var(--a-alert); color:#fff; border:0; border-radius:20px; padding:16px}
+.urgent .big{font-family:var(--f-display); font-size:34px; line-height:1; font-weight:800}
+.urgent .t-meta{color:rgba(255,255,255,.85)}
+.checklist{display:flex; flex-direction:column; gap:8px; margin-top:12px; background:rgba(255,255,255,.14); border-radius:14px; padding:10px 12px}
+.checklist div{display:flex; gap:9px; align-items:center; font-size:14px}
+.box{width:18px; height:18px; border-radius:6px; border:2px solid rgba(255,255,255,.8); flex:0 0 18px; display:grid; place-items:center}
+.box.on{background:#fff}
+.box.on::after{content:""; width:8px; height:5px; border-left:2.5px solid var(--a-alert); border-bottom:2.5px solid var(--a-alert); transform:rotate(-45deg) translate(1px,-1px)}
+
+.prompt{background:var(--a-brand); color:#fff; border:0; border-radius:20px; padding:16px; text-align:left; width:100%}
+.prompt .t-meta{color:rgba(255,255,255,.85)}
+.camicon{width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.18); display:grid; place-items:center; flex:0 0 44px}
+
+.tabbar{flex:0 0 auto; display:flex; justify-content:space-around; border-top:1px solid var(--a-line); background:rgba(255,255,255,.94); backdrop-filter:blur(10px); padding:8px 6px 28px}
+.tabbar button{border:0; background:none; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; font-weight:600; color:var(--a-muted); padding:4px 10px; min-width:64px}
+.tabbar button[aria-current="page"]{color:var(--a-brand)}
+.tabbar svg{width:24px; height:24px}
+
+.topnav{display:flex; align-items:center; justify-content:space-between; padding:2px 10px 6px 8px; flex:0 0 auto}
+.back{border:0; background:none; color:var(--a-brand); font-weight:600; font-size:16px; display:flex; align-items:center; gap:2px; padding:6px}
+.topnav .ttl{font-weight:700; font-size:16px}
+
+/* letter + scan */
+.letter{background:#FFFEFB; color:#222; border-radius:6px; padding:16px 16px 18px; font-family:Georgia, "Times New Roman", serif; font-size:11.5px; line-height:1.5;
+  box-shadow:0 10px 24px -10px rgba(0,0,0,.35); transform:rotate(-1.2deg); position:relative; overflow:hidden; border:1px solid #ECE8DE}
+.letter h4{margin:0 0 2px; font-size:12px; letter-spacing:.02em; font-family:var(--f-body)}
+.letter .agency{font-family:var(--f-body); font-size:10px; color:#666; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid #ddd; padding-bottom:6px; margin-bottom:8px}
+.letter p{margin:6px 0}
+.hl{transition:background .4s, box-shadow .4s; border-radius:3px}
+.letter.found .hl{background:#FFE58A; box-shadow:0 0 0 2px #FFE58A}
+.scanline{position:absolute; left:0; right:0; height:46px; top:-46px; background:linear-gradient(180deg, transparent, rgba(15,110,100,.25), rgba(15,110,100,.55)); border-bottom:2px solid var(--a-brand); display:none}
+.letter.reading .scanline{display:block; animation:scan 1.7s ease-in-out infinite}
+@keyframes scan{0%{top:-46px} 100%{top:100%}}
+.viewfinder{background:#1A1D1E; border-radius:24px; padding:26px 22px; position:relative}
+.viewfinder .corner{position:absolute; width:26px; height:26px; border:3px solid #fff; opacity:.9}
+.corner.tl{top:12px; left:12px; border-right:0; border-bottom:0; border-radius:8px 0 0 0}
+.corner.tr{top:12px; right:12px; border-left:0; border-bottom:0; border-radius:0 8px 0 0}
+.corner.bl{bottom:12px; left:12px; border-right:0; border-top:0; border-radius:0 0 0 8px}
+.corner.br{bottom:12px; right:12px; border-left:0; border-top:0; border-radius:0 0 8px 0}
+.found-card{border:2px solid var(--a-brand); animation:pop .35s ease-out}
+@keyframes pop{from{transform:translateY(8px); opacity:.2} to{transform:none; opacity:1}}
+.kv{display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:14px}
+.kv dt{color:var(--a-muted)} .kv dd{margin:0; font-weight:600}
+.ai-tag{display:inline-flex; gap:6px; align-items:center; font-size:12px; font-weight:700; color:var(--a-brand)}
+.spinner{width:14px; height:14px; border-radius:50%; border:2px solid var(--a-brand-soft); border-top-color:var(--a-brand); animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* calendar */
+.month{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; font-size:13px; font-variant-numeric:tabular-nums}
+.month .dow{font-size:10.5px; font-weight:700; color:var(--a-muted); padding-bottom:4px}
+.month .d{padding:6px 0 8px; border-radius:10px; position:relative}
+.month .d.today{background:var(--a-brand); color:#fff; font-weight:700}
+.month .d .dots{position:absolute; bottom:2px; left:0; right:0; display:flex; justify-content:center; gap:2px}
+.month .d .dots span{width:4px; height:4px; border-radius:50%}
+.legend{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+
+/* records */
+.doc-ic{width:40px; height:48px; border-radius:8px; background:var(--a-bg); border:1px solid var(--a-line); display:grid; place-items:center; flex:0 0 40px; font-size:9px; font-weight:800; color:var(--a-muted)}
+.share{display:flex; gap:8px; flex-wrap:wrap}
+.avatar{width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; flex:0 0 28px}
+
+/* Charles view */
+.ch-day{font-family:var(--f-display); font-size:40px; line-height:1; font-weight:800; margin:8px 0 0; letter-spacing:-.02em}
+.tiles{display:flex; flex-direction:column; gap:10px}
+.tile{display:flex; align-items:center; gap:14px; border-radius:20px; padding:12px; background:var(--a-card); border:2px solid var(--a-line)}
+.tile .pic{width:56px; height:56px; border-radius:16px; display:grid; place-items:center; font-size:30px; flex:0 0 56px}
+.tile .when{font-size:15px; font-weight:700; color:var(--a-muted)}
+.tile .what{font-size:19px; font-weight:800; font-family:var(--f-display); letter-spacing:-.01em}
+.tile.done{opacity:.5}
+.tile.done .what{text-decoration:line-through; text-decoration-thickness:2px}
+.tile.now{border-color:var(--a-sun); background:var(--a-sun-soft)}
+.nowtag{font-size:12px; font-weight:800; background:var(--a-sun); color:#3A2600; border-radius:999px; padding:3px 10px}
+.bigbtn{border:0; width:100%; border-radius:24px; padding:20px; font-family:var(--f-display); font-size:24px; font-weight:800; color:#fff; background:var(--a-alert); display:flex; align-items:center; justify-content:center; gap:12px}
+.bigbtn.go{background:var(--a-brand)}
+.week{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.week div{border-radius:16px; background:var(--a-ok-soft); text-align:center; padding:10px 4px}
+.week b{display:block; font-family:var(--f-display); font-size:24px; color:var(--a-ok)}
+.week span{font-size:12px; font-weight:700; color:var(--a-muted)}
+.total{display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; font-weight:700}
+.total b{font-family:var(--f-display); font-size:30px}
+.success{text-align:center; padding:26px 10px}
+.success .ring{width:96px; height:96px; border-radius:50%; background:var(--a-ok-soft); display:grid; place-items:center; margin:0 auto 14px; font-size:48px; animation:pop .4s ease-out}
+.success h3{font-family:var(--f-display); font-size:26px; margin:0 0 6px}
+.timer{font-family:var(--f-display); font-size:44px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+/* Mail (supervisor) */
+.mail{background:#fff; color:#111; font-family:-apple-system, "SF Pro Text", var(--f-body)}
+.mail-head{padding:4px 18px 8px}
+.mail-head h2{font-size:32px; font-weight:800; margin:4px 0 6px; letter-spacing:-.02em; font-family:-apple-system, "SF Pro Display", var(--f-body)}
+.search{background:#EEEEF0; border-radius:10px; padding:8px 10px; color:#8A8A8E; font-size:15px}
+.msg{display:flex; gap:10px; padding:11px 18px 11px 8px; border-bottom:1px solid #E5E5EA; width:100%; text-align:left; background:#fff; border-left:0; border-right:0; border-top:0}
+.msg .unread{width:10px; height:10px; border-radius:50%; background:var(--mail-blue); margin-top:6px; flex:0 0 10px}
+.msg .unread.off{background:transparent}
+.msg .from{font-weight:700; font-size:15px; display:flex; justify-content:space-between; gap:8px}
+.msg .from small{font-weight:400; color:#8A8A8E; font-size:13px; white-space:nowrap}
+.msg .subj{font-size:14px; margin-top:1px}
+.msg .prev{font-size:13.5px; color:#8A8A8E; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:1px}
+.msg.new{animation:pop .4s ease-out; background:#F4F8FF}
+.mail-nav{display:flex; justify-content:space-between; align-items:center; padding:2px 12px 6px}
+.mail-nav .back{color:var(--mail-blue)}
+.em-head{padding:6px 18px 12px; border-bottom:1px solid #E5E5EA}
+.em-head h3{font-size:20px; margin:4px 0 10px; line-height:1.25}
+.em-from{display:flex; gap:10px; align-items:center; font-size:14px}
+.em-body{padding:16px 18px 30px; font-size:15px; line-height:1.5}
+.em-card{border:1px solid #E5E5EA; border-radius:14px; overflow:hidden; margin:14px 0}
+.em-brand{background:var(--a-brand); color:#fff; padding:12px 14px; display:flex; align-items:center; gap:8px; font-family:var(--f-display); font-weight:800; font-size:18px}
+.em-brand small{font-family:var(--f-body); font-weight:600; font-size:11.5px; opacity:.85; margin-left:auto}
+.hrs{width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums}
+.hrs td,.hrs th{padding:8px 14px; border-bottom:1px solid #F0F0F2; text-align:left}
+.hrs th{font-size:11.5px; color:#8A8A8E; text-transform:uppercase; letter-spacing:.05em}
+.hrs td:last-child,.hrs th:last-child{text-align:right}
+.hrs tfoot td{font-weight:800; border-bottom:0}
+.sig{padding:12px 14px; display:flex; flex-direction:column; gap:10px; background:#FAFAFB}
+.sig label{font-size:12px; color:#6B6B70; font-weight:600}
+.sig input[type=text]{width:100%; border:1px solid #D1D1D6; border-radius:10px; padding:10px 12px; font-family:"Caveat", "Brush Script MT", "Segoe Script", cursive; font-size:26px; background:#fff; color:#111}
+.confirm{display:flex; gap:10px; align-items:flex-start; font-size:13.5px}
+.confirm input{width:20px; height:20px; margin:1px 0 0; accent-color:var(--a-brand)}
+.em-actions{display:flex; flex-direction:column; gap:8px; padding:0 14px 14px; background:#FAFAFB}
+.linkbtn{border:0; background:none; color:#6B6B70; font-weight:600; font-size:14px; padding:6px; text-decoration:underline}
+.fine{font-size:12px; color:#8A8A8E; margin-top:14px}
+.webbar{background:#F2F2F7; padding:8px 14px; display:flex; justify-content:center; font-size:13px; color:#333; border-bottom:1px solid #E5E5EA}
+.webbar span{background:#E3E3E8; border-radius:9px; padding:6px 14px}
+textarea{width:100%; min-height:90px; border:1px solid #D1D1D6; border-radius:12px; padding:10px; font:inherit; resize:vertical}
+
+.toast{position:absolute; left:14px; right:14px; top:58px; background:rgba(30,30,32,.94); color:#fff; border-radius:18px; padding:12px 14px; display:flex; gap:10px; align-items:center; z-index:50; transform:translateY(-30px); opacity:0; visibility:hidden; pointer-events:none; transition:transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s, visibility .35s; font-size:13.5px}
+.toast.show{transform:none; opacity:1; visibility:visible}
+.toast .ic{width:34px; height:34px; border-radius:9px; background:var(--a-brand); display:grid; place-items:center; flex:0 0 34px; font-family:var(--f-display); font-weight:800}
+.toast b{display:block; font-size:13px}
+.sample{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--a-muted); background:var(--a-line); border-radius:6px; padding:2px 7px}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+/* ---------- v2 additions ---------- */
+.step.next{border-style:dashed}
+.stepsep{flex:0 0 auto; align-self:center; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:0 4px 0 6px; white-space:nowrap}
+.kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px}
+.kpi{background:var(--a-card); border:1px solid var(--a-line); border-radius:14px; padding:10px}
+.kpi b{display:block; font-family:var(--f-display); font-size:24px; line-height:1.1; font-variant-numeric:tabular-nums}
+.kpi span{font-size:11.5px; color:var(--a-muted); font-weight:600}
+.client{width:100%; text-align:left; display:flex; gap:12px; align-items:center; background:var(--a-card); border:1px solid var(--a-line); border-radius:16px; padding:12px; position:relative; overflow:hidden}
+.client .stripe{position:absolute; left:0; top:0; bottom:0; width:5px}
+.ini{width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:13px; color:#fff; flex:0 0 38px}
+.ai-card{background:var(--a-card); border:1.5px dashed var(--a-brand); border-radius:16px; padding:12px; width:100%; text-align:left}
+.pending{font-size:11px; font-weight:800; letter-spacing:.04em; background:#F3E8C8; color:#7A5600; border-radius:999px; padding:3px 9px; white-space:nowrap}
+.prog{display:flex; gap:6px; margin-top:10px}
+.prog span{flex:1; height:6px; border-radius:3px; background:var(--a-line)}
+.prog span.on{background:var(--a-ok)}
+.prog span.mid{background:var(--a-sun)}
+.sw{width:50px; height:30px; border-radius:15px; border:0; background:#D3DBD9; position:relative; flex:0 0 50px; transition:background .2s}
+.sw::after{content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--a-ok)}
+.sw[aria-checked="true"]::after{transform:translateX(20px)}
+.sw:disabled{opacity:.5}
+.log{font-size:13.5px; display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--a-line)}
+.log:last-child{border-bottom:0}
+.private{background:var(--a-bg); border:1px dashed var(--a-line); border-radius:16px; padding:14px; color:var(--a-muted); font-size:14px; display:flex; gap:10px; align-items:center}
+.item{display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; background:var(--a-bg)}
+.item.done{background:var(--a-ok-soft)}
+.mini{border:0; border-radius:10px; padding:8px 12px; font-weight:700; font-size:13px; background:var(--a-brand); color:#fff; white-space:nowrap}
+.mini.ok{background:transparent; color:var(--a-ok)}
+.qr{background:#fff; border-radius:20px; padding:18px; width:230px; margin:0 auto; box-shadow:0 10px 30px -12px rgba(0,0,0,.3)}
+.qr svg{display:block; width:100%; height:auto}
+.plain{font-size:19px; line-height:1.45; font-weight:600}
+.circle-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--a-line)}
+.circle-row:last-child{border-bottom:0}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="topbar">
+    <div class="brand"><a href="../" style="color:inherit;text-decoration:none"><b>Almova</b></a><span id="lblSample">Demo · sample data</span></div>
+    <div class="seg" role="group" aria-label="Language">
+      <button id="lang-en" data-act="lang" data-v="en" aria-pressed="true">EN</button>
+      <button id="lang-es" data-act="lang" data-v="es" aria-pressed="false">ES</button>
+    </div>
+    <button class="ghost" id="btnPresent" data-act="present">Full screen app</button>
+    <button class="ghost" id="btnReset" data-act="reset">Reset</button>
+  </div>
+  <nav class="steps" id="steps" aria-label="Demo steps"></nav>
+  <div class="talk">
+    <div><small id="lblSay">Say this</small><p id="talk"></p></div>
+    <div class="nav">
+      <button class="ghost" data-act="prev" aria-label="Previous step">←</button>
+      <button class="ghost" data-act="next" aria-label="Next step">→</button>
+    </div>
+  </div>
+  <div class="viewing">
+    <label id="lblViewing">Viewing as</label>
+    <div class="seg" role="group" aria-label="Who is using the phone" id="whoSeg"></div>
+  </div>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="island"></div>
+        <div class="status"><span>2:14</span>
+          <span class="icons" aria-hidden="true">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .4 10.4 10.4 0 0 0 .8 3.3L2 4.6a8.6 8.6 0 0 1 6-2.4Zm0 3.6c1.4 0 2.6.5 3.5 1.4l1.3-1.3A6.8 6.8 0 0 0 8 4a6.8 6.8 0 0 0-4.8 1.9l1.3 1.3c.9-.9 2.1-1.4 3.5-1.4Zm0 3.5c-.6 0-1.1.2-1.5.6L8 11.5l1.5-1.6c-.4-.4-.9-.6-1.5-.6Z" fill="currentColor"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="25" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+          </span>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"><div class="ic">i</div><div><b id="toastT"></b><span id="toastB"></span></div></div>
+        <div class="app" id="app"></div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const INIT = {
+  lang:'en', who:'agency', step:0,
+  ag:'list', scan:'idle',
+  taskSent:false, stubs:[false,false], taskDone:false,
+  lena:'list',
+  mk:'home', share:{benefits:true, work:true, health:false},
+  mom:'home', folder:null, vaultBack:'home',
+  shift:'working', sent:false, mail:'inbox', approved:false, flagged:false, sigName:'Mike Torres'
+};
+let S = JSON.parse(JSON.stringify(INIT));
+const L = (en, es) => S.lang==='es' ? es : en;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const I = {
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+ vault:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="12" cy="12" r="3.2"/><path d="M12 8.8V7M15.2 12H17"/></svg>',
+ people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 14.6c2.4.2 4 1.9 4.5 4.6"/></svg>',
+ list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>',
+ chev:'<svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg>',
+ lock:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+ spark:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg>',
+ cam:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>',
+ qr:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>'
+};
+const fwd = `<span style="color:var(--a-muted);transform:rotate(180deg);display:inline-flex">${I.chev}</span>`;
+const topnav = (backAct, backV, backLbl, title) => `<div class="topnav"><button class="back" data-act="${backAct}" data-v="${backV}">${I.chev}<span>${esc(backLbl)}</span></button><span class="ttl">${esc(title)}</span><span style="width:60px"></span></div>`;
+const tabbar = (items, cur) => `<nav class="tabbar">${items.map(([id,ic,lbl,act])=>`<button data-act="${act}" data-v="${id}" ${cur===id?'aria-current="page"':''}>${I[ic]}<span>${esc(lbl)}</span></button>`).join('')}</nav>`;
+
+/* ---------- Medi-Cal renewal state, shared by every view ---------- */
+function renewal(){
+  if(S.taskDone) return {lvl:'mid', chip:'c-sun', label:L('Signed','Firmado'), done:2,
+    agency:L('Form signed · next: Ultra sends to county','Firmado · sigue: Ultra lo envía al condado'),
+    plain:L('You signed your renewal form. Ultra Services will send it to the county.','Firmaste tu formulario de renovación. Ultra Services lo enviará al condado.'),
+    family:L('Marcus signed his renewal form. Next, Ultra Services sends it to the county.','Marcus firmó su formulario de renovación. Después, Ultra Services lo envía al condado.')};
+  if(S.taskSent) return {lvl:'mid', chip:'c-sun', label:L('In progress','En proceso'), done:1,
+    agency:L('Pay stubs attached · Lena helping Marcus sign','Talones adjuntos · Lena ayuda a Marcus a firmar'),
+    plain:L('Your pay stubs are already attached. Lena will help you sign your form this week.','Tus talones de pago ya están adjuntos. Lena te ayudará a firmar tu formulario esta semana.'),
+    family:L('In progress. Pay stubs are attached. Lena is helping Marcus sign his form.','En proceso. Los talones ya están adjuntos. Lena ayuda a Marcus a firmar su formulario.')};
+  return {lvl:'risk', chip:'c-alert', label:L('Needs signature','Falta firma'), done:1,
+    agency:L('Pay stubs attached automatically · form not signed','Talones adjuntos automáticamente · formulario sin firmar'),
+    plain:L('Your Medi-Cal needs to be renewed by December 3. Your pay stubs are already attached. Next, you sign the form.','Tu Medi-Cal se tiene que renovar antes del 3 de diciembre. Tus talones ya están adjuntos. Después, firmas el formulario.'),
+    family:L('Pay stubs are attached. Marcus still needs to sign his form.','Los talones ya están adjuntos. Marcus todavía tiene que firmar su formulario.')};
+}
+const progBar = (done, mid) => `<div class="prog">${[0,1,2].map(i=>`<span class="${i<done?'on':(i===done&&mid?'mid':'')}"></span>`).join('')}</div>`;
+const due = () => L('Due Dec 3 · 21 days','Vence 3 dic · 21 días');
+
+/* ================= AGENCY ================= */
+function agencyList(){
+  const r=renewal(); const risk = r.lvl==='risk';
+  const row=(ini,col,name,what,status,chip,stripe,act)=>`<button class="client" ${act?`data-act="${act}"`:''}><span class="stripe" style="background:var(${stripe})"></span><span class="ini" style="background:${col}">${ini}</span><div class="grow"><div class="t-strong">${esc(name)}</div><div class="t-meta">${esc(what)}</div></div><span class="chip ${chip}">${esc(status)}</span></button>`;
+  return `<div class="scroll">
+    <p class="a-sub" style="margin-top:6px">Ultra Services</p>
+    <h1 class="a-h1">${L('Caseload','Casos')}</h1>
+    <div class="kpis">
+      <div class="kpi"><b>42</b><span>${L('clients','clientes')}</span></div>
+      <div class="kpi"><b style="color:${risk?'var(--a-alert)':'var(--a-ok)'}">${risk?1:0}</b><span>${L('at risk','en riesgo')}</span></div>
+      <div class="kpi"><b>4</b><span>${L('due in 30 days','vencen en 30 días')}</span></div>
+    </div>
+    <div class="a-sec">${L('Needs attention','Requiere atención')}</div>
+    <div class="stack">
+      ${row('MR','var(--a-alert)','Marcus Reyes',L('Medi-Cal renewal','Renovación de Medi-Cal')+' · '+due()+' · '+r.agency, r.label, r.chip, risk?'--a-alert':'--a-sun','openClient')}
+      ${row('SR','#8A4FB5','Sofia Ramirez',L('CalFresh recertification · Nov 30','Recertificación CalFresh · 30 nov'),L('In progress','En proceso'),'c-sun','--a-sun')}
+    </div>
+    <div class="a-sec">${L('On track','Al día')}</div>
+    <div class="stack">
+      ${row('AL','#2F6FCB','Ana López',L('SSI review · Jan 8','Revisión SSI · 8 ene'),L('On track','Al día'),'c-ok','--a-ok')}
+      ${row('JC','#1D8048','Jamal Carter',L('IPP documents · Dec 18','Documentos IPP · 18 dic'),L('Ready','Listo'),'c-ok','--a-ok')}
+      ${row('KN','#94620A','Kevin Nguyen',L('Medi-Cal renewal · Feb 2','Renovación de Medi-Cal · 2 feb'),L('On track','Al día'),'c-ok','--a-ok')}
+    </div>
+    <div class="a-sec">${L('Tools','Herramientas')}</div>
+    <button class="ai-card" data-act="agGo" data-v="reader">
+      <div class="row"><span class="ai-tag">${I.spark}${L('AI letter reader','Lector de cartas con IA')}</span><span class="grow"></span><span class="pending">${L('Pending DDS approval','Pendiente de aprobación DDS')}</span></div>
+      <div class="t-meta" style="margin-top:6px">${L('Reads benefit letters and finds due dates. A person approves every result.','Lee cartas de beneficios y encuentra fechas límite. Una persona aprueba cada resultado.')}</div>
+    </button>
+  </div>${tabbar([['list','list',L('Caseload','Casos'),'agGo']],'list')}`;
+}
+function agencyClient(){
+  const r=renewal();
+  const person=(ini,col,name,role,see)=>`<div class="circle-row"><span class="ini" style="background:${col};width:32px;height:32px;flex-basis:32px;font-size:11px">${ini}</span><div class="grow"><div class="t-strong" style="font-size:14px">${esc(name)}</div><div class="t-meta">${esc(role)}</div></div><span class="t-meta" style="text-align:right;max-width:120px;font-size:12px">${esc(see)}</span></div>`;
+  let action;
+  if(!S.taskSent) action=`<button class="btn" data-act="sendTask">${L('Ask Lena to help Marcus sign','Pedir a Lena que ayude a Marcus a firmar')}</button>
+      <div class="t-meta" style="text-align:center">${L('Due Friday, Nov 13','Para el viernes 13 de nov')}</div>`;
+  else action=`<div class="card row" style="background:var(--a-ok-soft);border-color:transparent"><span style="font-size:20px">✓</span><div class="grow"><div class="t-strong">${S.taskDone?L('Lena finished the task','Lena terminó la tarea'):L('Task sent to Lena','Tarea enviada a Lena')}</div><div class="t-meta">${S.taskDone?L('Signed form saved to Marcus’s Vault','Formulario firmado guardado en el Vault de Marcus'):L('Help Marcus sign · by Fri Nov 13','Ayudar a Marcus a firmar · para vie 13 nov')}</div></div></div>`;
+  return `${topnav('agGo','list',L('Caseload','Casos'),'Marcus Reyes')}
+  <div class="scroll stack" style="gap:12px">
+    <div class="row"><span class="ini" style="background:var(--a-alert);width:52px;height:52px;flex-basis:52px;font-size:17px">MR</span><div class="grow"><div class="t-strong" style="font-size:18px">Marcus Reyes, 24</div><div class="t-meta">Inland Regional Center · ${L('Service code 490','Código de servicio 490')}</div></div></div>
+    <div class="card" style="${r.lvl==='risk'?'border:2px solid var(--a-alert)':''}">
+      <div class="row"><div class="grow"><div class="t-strong">${L('Medi-Cal renewal','Renovación de Medi-Cal')}</div><div class="t-meta" style="color:var(--a-alert);font-weight:700">${due()}</div></div><span class="chip ${r.chip}">${esc(r.label)}</span></div>
+      ${progBar(r.done, r.lvl==='mid')}
+      <div class="t-meta" style="margin-top:6px">${L('Pay stubs · Signed form · Sent to county','Talones · Formulario firmado · Enviado al condado')}</div>
+      <div class="row" style="margin-top:10px;gap:8px;background:var(--a-ok-soft);border-radius:12px;padding:8px 10px"><span style="color:var(--a-ok);font-weight:800">✓</span><span class="t-meta" style="color:var(--a-ok);font-weight:600">${L('2 pay stubs attached automatically from Ultra payroll','2 talones adjuntados automáticamente desde la nómina de Ultra')}</span></div>
+    </div>
+    <div class="card stack" style="gap:8px">
+      <div class="row"><div class="grow t-strong" style="font-size:14px">${L('SSI · wage report','SSI · reporte de salario')}</div><span class="chip c-ok">${L('Dec 6 · on track','6 dic · al día')}</span></div>
+      <div class="row"><div class="grow t-strong" style="font-size:14px">${L('IPP · annual review','IPP · revisión anual')}</div><span class="chip c-ok">${L('Aug 2027','ago 2027')}</span></div>
+    </div>
+    ${action}
+    <div class="a-sec" style="margin:8px 0 0">${L('Marcus’s circle','El círculo de Marcus')}</div>
+    <div class="card" style="padding:4px 14px">
+      ${person('MR','var(--a-alert)','Marcus',L('Client','Cliente'),L('Everything, his record','Todo, es su expediente'))}
+      ${person('MA','#8A4FB5','Maria Reyes',L('Mom','Mamá'),L('What Marcus shares','Lo que Marcus comparte'))}
+      ${person('LO','#0F6E64','Lena Ortiz',L('Support staff','Personal de apoyo'),L('Her assigned tasks','Sus tareas asignadas'))}
+      ${person('RA','#2F6FCB','Rosa Alvarez',L('IRC coordinator','Coordinadora IRC'),L('Status and risks','Estado y riesgos'))}
+    </div>
+    <div class="t-meta" style="display:flex;gap:6px;align-items:flex-start">${I.lock}<span>${L('Safety net: if this renewal goes quiet for 7 days, Almova alerts Rosa at IRC.','Red de seguridad: si esta renovación no avanza en 7 días, Almova avisa a Rosa en IRC.')}</span></div>
+  </div>`;
+}
+function letterHTML(){
+  const cls = S.scan==='reading' ? 'letter reading' : (S.scan==='done' ? 'letter found' : 'letter');
+  return `<div class="${cls}"><div class="scanline"></div>
+    <div class="agency">County of Riverside · Department of Public Social Services</div>
+    <h4>Medi-Cal Annual Renewal</h4>
+    <p>November 3, 2026<br>Marcus Reyes · Case no. ••••4471</p>
+    <p>It is time to renew Medi-Cal for the person named above. Please complete the enclosed renewal form <span class="hl">(MC 216)</span> and return it with <span class="hl">proof of current income</span>.</p>
+    <p>We must receive your form <span class="hl"><b>by December 3, 2026</b></span>. If we do not receive it, <span class="hl">Medi-Cal coverage may end</span>.</p></div>`;
+}
+function agencyReader(){
+  let below='';
+  if(S.scan==='idle') below=`<button class="btn" data-act="read">${L('Try a sample letter','Probar con una carta de ejemplo')}</button>`;
+  else if(S.scan==='reading') below=`<div class="card row"><span class="spinner"></span><span class="t-strong">${L('Reading the letter…','Leyendo la carta…')}</span></div>`;
+  else below=`<div class="card found-card stack">
+      <span class="ai-tag">${I.spark}${L('Suggested, needs a person to approve','Sugerencia, requiere aprobación de una persona')}</span>
+      <dl class="kv">
+        <dt>${L('Client','Cliente')}</dt><dd>Marcus Reyes</dd>
+        <dt>${L('What','Qué')}</dt><dd>${L('Medi-Cal renewal','Renovación de Medi-Cal')}</dd>
+        <dt>${L('Due','Vence')}</dt><dd style="color:var(--a-alert)">${L('Dec 3, 2026','3 dic 2026')}</dd>
+        <dt>${L('Needs','Necesita')}</dt><dd>${L('Form MC 216 + proof of income','Formulario MC 216 + comprobante de ingresos')}</dd>
+      </dl>
+      <button class="btn" data-act="agGo" data-v="list">${L('Approve and add to caseload','Aprobar y agregar a casos')}</button>
+    </div>`;
+  return `${topnav('agGo','list',L('Caseload','Casos'),L('AI letter reader','Lector con IA'))}
+  <div class="scroll stack" style="gap:14px">
+    <div class="card row" style="background:#FBF4E0;border-color:transparent"><span class="pending">${L('Pending DDS approval','Pendiente de aprobación DDS')}</span><span class="t-meta" style="color:#6B4A08">${L('Preview only. Turned on once DDS approves.','Solo vista previa. Se activa cuando DDS lo apruebe.')}</span></div>
+    <div class="viewfinder"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>${letterHTML()}</div>
+    ${below}
+  </div>`;
+}
+
+/* ================= CAREGIVER (Lena) ================= */
+function lenaList(){
+  const r=renewal();
+  const task = S.taskSent ? `<button class="client" data-act="lenaGo" data-v="task" style="${S.taskDone?'':'border:2px solid var(--a-brand)'}"><span class="stripe" style="background:var(${S.taskDone?'--a-ok':'--a-brand'})"></span><span class="ini" style="background:var(--a-alert)">MR</span><div class="grow"><div class="t-strong">${L('Help Marcus sign his Medi-Cal form','Ayudar a Marcus a firmar su formulario de Medi-Cal')}</div><div class="t-meta">${L('Marcus Reyes · by Fri Nov 13','Marcus Reyes · para vie 13 nov')}</div></div><span class="chip ${S.taskDone?'c-ok':'c-brand'}">${S.taskDone?L('Done','Listo'):L('New','Nueva')}</span></button>`
+    : `<div class="private">${L('No new tasks. Ultra Services will send them here.','Sin tareas nuevas. Ultra Services las enviará aquí.')}</div>`;
+  return `<div class="scroll">
+    <h1 class="a-h1">${L('Hi Lena','Hola Lena')}</h1>
+    <p class="a-sub">${L('Thursday, Nov 12 · 3 clients','Jueves 12 nov · 3 clientes')}</p>
+    <div class="a-sec">${L('Tasks','Tareas')}</div>
+    <div class="stack">${task}
+      <div class="client"><span class="stripe" style="background:var(--a-ok)"></span><span class="ini" style="background:#2F6FCB">AL</span><div class="grow"><div class="t-strong">${L('Bring Ana’s SSI letter to the office','Llevar la carta SSI de Ana a la oficina')}</div><div class="t-meta">${L('Ana López · done Tuesday','Ana López · hecho el martes')}</div></div><span class="chip c-ok">${L('Done','Listo')}</span></div>
+    </div>
+    <div class="a-sec">${L('My clients','Mis clientes')}</div>
+    <div class="card" style="padding:4px 14px">
+      ${[['MR','var(--a-alert)','Marcus Reyes',S.taskDone?L('Medi-Cal form signed','Formulario de Medi-Cal firmado'):L('Medi-Cal renewal due Dec 3','Medi-Cal vence 3 dic')],['AL','#2F6FCB','Ana López',L('All set','Todo en orden')],['JC','#1D8048','Jamal Carter',L('All set','Todo en orden')]].map(([i,c,n,m])=>`<div class="circle-row"><span class="ini" style="background:${c};width:32px;height:32px;flex-basis:32px;font-size:11px">${i}</span><div class="grow"><div class="t-strong" style="font-size:14px">${n}</div><div class="t-meta">${m}</div></div></div>`).join('')}
+    </div>
+    <div class="t-meta" style="display:flex;gap:6px;align-items:center;margin-top:14px">${I.lock}${L('You only see what you need for your assigned clients.','Solo ves lo necesario para tus clientes asignados.')}</div>
+  </div>`;
+}
+function lenaTask(){
+  const step=(i,label,sub,btn)=>{ const d=S.stubs[i]; return `<div class="item ${d?'done':''}"><span style="width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:0 0 28px;font-weight:800;background:#fff;color:var(--a-brand)">${i+1}</span><div class="grow"><div class="t-strong" style="font-size:14px">${label}</div><div class="t-meta">${sub}</div></div>${d?`<span class="mini ok">✓</span>`:`<button class="mini" data-act="stub" data-v="${i}" ${i===1&&!S.stubs[0]?'disabled style="opacity:.4"':''}>${btn}</button>`}</div>`; };
+  const all=S.stubs.every(Boolean);
+  return `${topnav('lenaGo','list',L('Tasks','Tareas'),L('Task','Tarea'))}
+  <div class="scroll stack" style="gap:14px">
+    <div><h2 class="a-h1" style="font-size:24px">${L('Help Marcus sign his Medi-Cal renewal form','Ayudar a Marcus a firmar su formulario de renovación de Medi-Cal')}</h2>
+      <p class="a-sub">${L('Due Friday, Nov 13 · from Ultra Services','Para el viernes 13 de nov · de Ultra Services')}</p></div>
+    <div class="card" style="background:var(--a-brand-soft);border-color:transparent;color:var(--a-brand);font-weight:600;font-size:14px">${L('Why: Marcus’s Medi-Cal renewal is due Dec 3. Marcus makes the decisions, you help him understand the form.','Por qué: la renovación de Medi-Cal de Marcus vence el 3 de dic. Marcus decide, tú le ayudas a entender el formulario.')}</div>
+    <div class="item done"><div class="doc-ic" style="background:#fff">PAY</div><div class="grow"><div class="t-strong" style="font-size:14px">${L('Proof of income','Comprobante de ingresos')}</div><div class="t-meta">${L('2 pay stubs attached automatically by Ultra Services','2 talones adjuntados automáticamente por Ultra Services')}</div></div><span class="mini ok">✓</span></div>
+    <div class="stack" style="gap:8px">
+      ${step(0,L('Go over the form with Marcus','Revisar el formulario con Marcus'),L('Form MC 216 · in plain language','Formulario MC 216 · en lenguaje sencillo'),L('Done','Listo'))}
+      ${step(1,L('Marcus signs','Marcus firma'),S.stubs[1]?L('Photo of signed form saved to his Vault','Foto del formulario firmado guardada en su Vault'):L('Take a photo of the signed form','Toma una foto del formulario firmado'),I.cam)}
+    </div>
+    ${S.taskDone?`<div class="card row" style="background:var(--a-ok-soft);border-color:transparent"><span style="font-size:20px">✓</span><div class="t-strong">${L('Done. Ultra Services and Marcus can see it.','Listo. Ultra Services y Marcus ya lo ven.')}</div></div>`
+      :`<button class="btn" data-act="taskDone" ${all?'':'disabled'}>${L('Mark task done','Marcar como lista')}</button>`}
+  </div>`;
+}
+
+/* ================= CLIENT (Marcus) ================= */
+function marcusHome(){
+  const r=renewal();
+  let work;
+  if(S.approved) work=L('Mike approved your 16 hours. Payday is Nov 15.','Mike aprobó tus 16 horas. El día de pago es el 15 de nov.');
+  else if(S.sent) work=L('Your 16 hours are with Mike to check.','Mike está revisando tus 16 horas.');
+  else work=S.shift==='working'?L('You’re at work now. 12 hours so far this week.','Estás trabajando. 12 horas esta semana.'):L('Shift done. Send your hours to Mike.','Turno terminado. Envía tus horas a Mike.');
+  return `<div class="scroll">
+    <div class="ch-day">${L('Hi Marcus!','¡Hola Marcus!')}</div>
+    <p class="a-sub" style="font-size:16px;margin-top:6px">${L('Here’s what’s going on.','Esto es lo que está pasando.')}</p>
+    <div class="card" style="margin-top:16px;border:2px solid var(${r.lvl==='risk'?'--a-alert':'--a-sun'})">
+      <div class="row"><span class="t-strong" style="font-size:13px;color:var(--a-muted);text-transform:uppercase;letter-spacing:.06em">Medi-Cal</span><span class="grow"></span><span class="chip ${r.chip}">${esc(r.label)}</span></div>
+      <p class="plain" style="margin:8px 0 0">${esc(r.plain)}</p>
+      ${progBar(r.done, r.lvl==='mid')}
+    </div>
+    <div class="a-sec">${L('My work','Mi trabajo')}</div>
+    <button class="tile" data-act="mkGo" data-v="work" style="width:100%;text-align:left"><div class="pic" style="background:var(--a-sun-soft)">🛒</div><div class="grow"><div class="when">Valley Fresh Market</div><div class="t-strong" style="font-size:15px">${esc(work)}</div></div>${fwd}</button>
+    <div class="a-sec">${L('My goal','Mi meta')}</div>
+    <div class="tile"><div class="pic" style="background:var(--a-sky-soft)">🚌</div><div class="grow"><div class="what" style="font-size:17px">${L('Take the bus to work on my own','Ir al trabajo en camión solo')}</div><div class="t-meta">${L('8 of 10 trips this month','8 de 10 viajes este mes')}</div></div></div>
+    <button class="btn secondary" data-act="mkGo" data-v="privacy" style="margin-top:18px;display:flex;gap:8px;justify-content:center;align-items:center">${I.lock} ${L('Who sees my updates','Quién ve mis novedades')}</button>
+  </div>${tabbar([['home','home',L('Home','Inicio'),'mkGo'],['privacy','people',L('My circle','Mi círculo'),'mkGo'],['vault','vault','Vault','mkVault']],S.mk==='vault'?'vault':S.mk)}`;
+}
+function marcusPrivacy(){
+  const sw=(k,label,sub)=>`<div class="circle-row"><div class="grow"><div class="t-strong" style="font-size:15px">${label}</div><div class="t-meta">${sub}</div></div><button class="sw" role="switch" aria-checked="${S.share[k]}" aria-label="${esc(label)}" data-act="share" data-v="${k}"></button></div>`;
+  return `${topnav('mkGo','home',L('Home','Inicio'),L('My circle','Mi círculo'))}
+  <div class="scroll stack" style="gap:14px">
+    <p class="plain" style="margin:0">${L('You decide what your family sees. You can change it anytime.','Tú decides qué ve tu familia. Lo puedes cambiar cuando quieras.')}</p>
+    <div class="card" style="padding:6px 14px">
+      <div class="row" style="padding:8px 0"><span class="ini" style="background:#8A4FB5;width:32px;height:32px;flex-basis:32px;font-size:11px">MA</span><div class="t-strong">${L('Mom (Maria)','Mamá (María)')}</div></div>
+      ${sw('benefits',L('Benefits and paperwork','Beneficios y papeleo'),L('Medi-Cal, SSI, renewals','Medi-Cal, SSI, renovaciones'))}
+      ${sw('work',L('My work','Mi trabajo'),L('Hours and payday','Horas y día de pago'))}
+      ${sw('health',L('Health','Salud'),L('Doctors and medications','Doctores y medicamentos'))}
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <div class="circle-row"><span class="ini" style="background:#0F6E64;width:32px;height:32px;flex-basis:32px;font-size:11px">LO</span><div class="grow"><div class="t-strong" style="font-size:15px">Lena</div><div class="t-meta">${L('Only tasks she helps you with','Solo las tareas en las que te ayuda')}</div></div></div>
+      <div class="circle-row"><span class="ini" style="background:#2F6FCB;width:32px;height:32px;flex-basis:32px;font-size:11px">RA</span><div class="grow"><div class="t-strong" style="font-size:15px">Rosa · IRC</div><div class="t-meta">${L('Status, so she can help if something gets stuck','Estado, para ayudar si algo se atora')}</div></div></div>
+    </div>
+    <button class="btn secondary" data-act="invite">+ ${L('Add someone to my circle','Agregar a alguien a mi círculo')}</button>
+    <div class="a-sec" style="margin:6px 0 0">${L('Who looked at my record','Quién vio mi expediente')}</div>
+    <div class="card" style="padding:4px 14px">
+      ${S.taskDone?`<div class="log"><span>${L('Lena added your signed form','Lena agregó tu formulario firmado')}</span><span class="t-meta">${L('Today 2:10','Hoy 2:10')}</span></div>`:''}
+      <div class="log"><span>Cristian · Ultra Services</span><span class="t-meta">${L('Today 1:45','Hoy 1:45')}</span></div>
+      <div class="log"><span>Rosa · IRC</span><span class="t-meta">${L('Nov 10','10 nov')}</span></div>
+      <div class="log"><span>${L('Mom','Mamá')}</span><span class="t-meta">${L('Nov 9','9 nov')}</span></div>
+    </div>
+  </div>`;
+}
+function marcusWork(){
+  let body;
+  if(S.shift==='working') body=`<div class="card stack" style="text-align:center;border:2px solid var(--a-sun);gap:6px">
+      <div class="t-strong" style="font-size:18px">${L('You’re working!','¡Estás trabajando!')}</div>
+      <div class="timer" id="timer">3:58:12</div><div class="t-meta">${L('Started at 10:00','Empezaste a las 10:00')}</div>
+      <button class="bigbtn" data-act="endShift" style="margin-top:8px">✋ ${L('End my shift','Terminar mi turno')}</button></div>`;
+  else if(!S.sent) body=`<div class="card"><div class="t-strong" style="font-size:18px;margin-bottom:10px">${L('My hours this week','Mis horas esta semana')}</div>
+      <div class="week">${[L('Mon','Lun'),L('Tue','Mar'),L('Wed','Mié'),L('Thu','Jue')].map(d=>`<div><b>4</b><span>${d}</span></div>`).join('')}</div>
+      <div class="total"><span>${L('Total','Total')}</span><span><b>16</b> ${L('hours','horas')}</span></div>
+      <button class="bigbtn go" data-act="sendHours" style="margin-top:14px">📨 ${L('Send my hours to Mike','Enviar mis horas a Mike')}</button></div>`;
+  else if(!S.approved) body=`<div class="card success"><div class="ring">📨</div><h3>${L('Sent!','¡Enviado!')}</h3><div class="t-meta" style="font-size:16px">${L('Mike will check your hours.','Mike va a revisar tus horas.')}</div></div>`;
+  else body=`<div class="card success" style="border:2px solid var(--a-ok)"><div class="ring">👍</div><h3>${L('Mike said your hours are right!','¡Mike dijo que tus horas están bien!')}</h3><div class="t-meta" style="font-size:16px">${L('Payday is Sunday, Nov 15.','El día de pago es el domingo 15 de nov.')}</div></div>`;
+  return `${topnav('mkGo','home',L('Home','Inicio'),L('My work','Mi trabajo'))}<div class="scroll stack" style="gap:14px"><p class="a-sub" style="font-size:16px">Valley Fresh Market · ${L('Supervisor: Mike Torres','Supervisor: Mike Torres')}</p>${body}</div>`;
+}
+
+/* ================= FAMILY (Maria) ================= */
+function momHome(){
+  const r=renewal();
+  const lockCard = txt => `<div class="private">${I.lock}<span>${txt}</span></div>`;
+  let work;
+  if(S.approved) work=L('Mike approved Marcus’s 16 hours. Payday Nov 15.','Mike aprobó las 16 horas de Marcus. Pago el 15 de nov.');
+  else if(S.sent) work=L('Marcus sent 16 hours to his supervisor.','Marcus envió 16 horas a su supervisor.');
+  else work=L('Working this week · 12 hours so far','Trabajando esta semana · 12 horas hasta ahora');
+  return `<div class="scroll">
+    <h1 class="a-h1">${L('Marcus’s updates','Novedades de Marcus')}</h1>
+    <p class="a-sub">${L('Shared with you by Marcus','Marcus las comparte contigo')}</p>
+    <div class="a-sec">${L('Benefits','Beneficios')}</div>
+    ${S.share.benefits?`<div class="card"><div class="row"><div class="grow t-strong">${L('Medi-Cal renewal','Renovación de Medi-Cal')}</div><span class="chip ${r.chip}">${esc(r.label)}</span></div>
+      <p style="margin:8px 0 0;font-size:15.5px;line-height:1.45">${esc(r.family)}</p>
+      <div class="t-meta" style="margin-top:6px;font-weight:700;color:var(--a-alert)">${L('Due December 3','Vence el 3 de diciembre')}</div>${progBar(r.done, r.lvl==='mid')}</div>`
+      : lockCard(L('Marcus keeps his benefits private right now.','Marcus mantiene sus beneficios en privado por ahora.'))}
+    <div class="a-sec">${L('Work','Trabajo')}</div>
+    ${S.share.work?`<div class="card row"><div style="width:40px;height:40px;border-radius:12px;background:var(--a-sun-soft);display:grid;place-items:center;font-size:22px;flex:0 0 40px">🛒</div><div class="grow"><div class="t-strong">Valley Fresh Market</div><div class="t-meta">${esc(work)}</div></div>${S.approved?`<span class="chip c-ok">${L('Approved','Aprobado')}</span>`:''}</div>`
+      : lockCard(L('Marcus keeps his work private right now.','Marcus mantiene su trabajo en privado por ahora.'))}
+    <div class="a-sec">${L('Health','Salud')}</div>
+    ${S.share.health?`<div class="card"><div class="t-strong">${L('Nothing due','Nada pendiente')}</div><div class="t-meta">${L('Medication list updated in October','Lista de medicamentos actualizada en octubre')}</div></div>`
+      : lockCard(L('Marcus keeps his health private right now.','Marcus mantiene su salud en privado por ahora.'))}
+  </div>${tabbar([['home','home',L('Updates','Novedades'),'momGo'],['vault','vault','Vault','momVault']],S.mom==='home'?'home':'vault')}`;
+}
+
+/* ================= VAULT (shared by Marcus and family) ================= */
+const docRow=(tag,title,meta,isNew)=>`<div class="card row" ${isNew?'style="border:2px solid var(--a-brand)"':''}><div class="doc-ic">${tag}</div><div class="grow"><div class="t-strong">${esc(title)}</div><div class="t-meta">${esc(meta)}</div></div>${isNew?`<span class="chip c-brand">${L('New','Nuevo')}</span>`:`<span style="color:var(--a-muted)">${I.lock}</span>`}</div>`;
+const FOLDERS = {
+  income:{ name:()=>L('Hours & income','Horas e ingresos'), sub:()=>L('Pay stubs, timesheets, job','Talones, horas, trabajo'), soft:'--a-sun-soft', color:'--a-sun',
+    items:()=>[
+      docRow('PAY',L('Pay stub · Oct 16–31','Talón · 16–31 oct'),L('From Ultra payroll, added automatically','De la nómina de Ultra, agregado automáticamente')), docRow('PAY',L('Pay stub · Oct 1–15','Talón · 1–15 oct'),L('From Ultra payroll, added automatically','De la nómina de Ultra, agregado automáticamente')),
+      docRow('HRS',L('Timesheet · Nov 9–15','Horas · 9–15 nov'), S.approved?L('Approved by Mike Torres','Aprobado por Mike Torres'):(S.sent?L('Waiting for Mike','Esperando a Mike'):L('In progress','En curso'))),
+      docRow('JOB',L('Job agreement','Acuerdo de trabajo'),'Ultra Services · Valley Fresh Market') ] },
+  paperwork:{ name:()=>L('Benefits & paperwork','Beneficios y papeleo'), sub:()=>L('Medi-Cal, SSI, IPP','Medi-Cal, SSI, IPP'), soft:'--a-alert-soft', color:'--a-alert',
+    items:()=>[ ...(S.taskDone?[docRow('MC',L('Signed renewal form (MC 216)','Formulario de renovación firmado (MC 216)'),L('Added by Lena today','Agregado por Lena hoy'),true)]:[]), docRow('PDF',L('Medi-Cal renewal letter','Carta de renovación de Medi-Cal'),L('County of Riverside · Nov 3','Condado de Riverside · 3 nov')),
+      docRow('ID',L('Medi-Cal card','Tarjeta de Medi-Cal'),L('Front and back','Frente y reverso')), docRow('SSI',L('SSI award letter','Carta de beneficio SSI'),L('Social Security · Jan 2026','Seguro Social · ene 2026')), docRow('IPP','IPP 2026–27','Inland Regional Center') ] },
+  medical:{ name:()=>L('Medical','Médico'), sub:()=>L('Evaluations, medications','Evaluaciones, medicamentos'), soft:'--a-sky-soft', color:'--a-sky',
+    items:()=>[ docRow('PDF',L('Diagnostic evaluation','Evaluación diagnóstica'),L('Psychologist report','Reporte del psicólogo')), docRow('RX',L('Medication list','Lista de medicamentos'),L('Updated Oct 2026','Actualizada oct 2026')) ] }
+};
+const folderIcon = c=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="var(${c})"><path d="M3 7a2 2 0 0 1 2-2h4.2l2 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`;
+function vaultHome(owner){
+  const visible = Object.keys(FOLDERS).filter(k => owner==='marcus' || k!=='medical' || S.share.health);
+  return `<div class="scroll">
+    <h1 class="a-h1">Almova Vault</h1>
+    <p class="a-sub">${L('Marcus’s record. It belongs to him and his family, and goes wherever he goes.','El expediente de Marcus. Es de él y su familia, y va con él a donde vaya.')}</p>
+    <button class="btn" data-act="qr" style="margin-top:14px;display:flex;gap:8px;justify-content:center;align-items:center">${I.qr} ${L('Share with a QR code','Compartir con código QR')}</button>
+    <div class="a-sec">${L('Folders','Carpetas')}</div>
+    <div class="stack">${visible.map(k=>{ const f=FOLDERS[k]; const n=f.items().length; const isNew=k==='paperwork'&&S.taskDone;
+      return `<button class="card row" data-act="folder" data-v="${k}" style="width:100%;text-align:left"><div style="width:46px;height:46px;border-radius:14px;background:var(${f.soft});display:grid;place-items:center;flex:0 0 46px">${folderIcon(f.color)}</div><div class="grow"><div class="t-strong">${esc(f.name())}</div><div class="t-meta">${esc(f.sub())} · ${n} ${L('files','archivos')}</div></div>${isNew?`<span class="chip c-brand">${L('New','Nuevo')}</span>`:''}${fwd}</button>`;}).join('')}
+    ${owner==='mom' && !S.share.health ? `<div class="private">${I.lock}<span>${L('Marcus keeps his medical folder private.','Marcus mantiene privada su carpeta médica.')}</span></div>`:''}
+    </div>
+  </div>`;
+}
+function folderScreen(){
+  const f=FOLDERS[S.folder]||FOLDERS.income;
+  return `${topnav('vaultBack','', 'Vault', f.name())}<div class="scroll"><div class="row" style="margin:4px 0 14px"><div style="width:46px;height:46px;border-radius:14px;background:var(${f.soft});display:grid;place-items:center">${folderIcon(f.color)}</div><p class="a-sub">${esc(f.sub())}</p></div><div class="stack">${f.items().join('')}</div></div>`;
+}
+function qrSVG(){
+  const n=25, cell=[]; let seed=4471;
+  const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const finder=(x,y)=>{ for(let i=0;i<7;i++)for(let j=0;j<7;j++){ const edge=i===0||i===6||j===0||j===6, core=i>=2&&i<=4&&j>=2&&j<=4; cell[(y+i)*n+x+j]=edge||core?1:0; } };
+  for(let i=0;i<n*n;i++) cell[i]=rnd()>.52?1:0;
+  const clear=(x,y)=>{ for(let i=-1;i<8;i++)for(let j=-1;j<8;j++){ const yy=y+i,xx=x+j; if(yy>=0&&yy<n&&xx>=0&&xx<n) cell[yy*n+xx]=0; } };
+  clear(0,0); clear(n-7,0); clear(0,n-7); finder(0,0); finder(n-7,0); finder(0,n-7);
+  let r=''; for(let y=0;y<n;y++)for(let x=0;x<n;x++) if(cell[y*n+x]) r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  return `<svg viewBox="-1 -1 ${n+2} ${n+2}" shape-rendering="crispEdges" fill="#111"><rect x="-1" y="-1" width="${n+2}" height="${n+2}" fill="#fff"/>${r}</svg>`;
+}
+function qrScreen(){
+  return `${topnav('vaultBack','', 'Vault', L('Share','Compartir'))}
+  <div class="scroll stack" style="gap:16px;text-align:center">
+    <p class="plain" style="margin:6px 0 0">${L('Show this at a new doctor, agency, or job.','Muéstralo en un nuevo doctor, agencia o trabajo.')}</p>
+    <div class="qr">${qrSVG()}</div>
+    <div class="card" style="text-align:left"><dl class="kv"><dt>${L('Shares','Comparte')}</dt><dd>${L('Benefits & paperwork, Hours & income','Beneficios y papeleo, Horas e ingresos')}</dd><dt>${L('Expires','Vence')}</dt><dd>${L('In 15 minutes','En 15 minutos')}</dd><dt>${L('Logged','Registro')}</dt><dd>${L('Marcus sees who opened it','Marcus ve quién lo abrió')}</dd></dl></div>
+  </div>`;
+}
+
+/* ================= SUPERVISOR (Mike, email) ================= */
+function mailInbox(){
+  const row=(f,time,s,p,unread,act,isNew)=>`<button class="msg ${isNew?'new':''}" ${act?`data-act="${act}"`:''}><span class="unread ${unread?'':'off'}"></span><div class="grow"><div class="from"><span>${esc(f)}</span><small>${time}</small></div><div class="subj">${esc(s)}</div><div class="prev">${esc(p)}</div></div></button>`;
+  const inc = S.sent ? row(L('Almova for Ultra Services','Almova para Ultra Services'),'2:02 PM',L('Marcus Reyes’s hours need your OK','Las horas de Marcus Reyes necesitan tu OK'),L('Marcus worked 16 hours this week at Valley Fresh Market. Approve in one tap, no account needed.','Marcus trabajó 16 horas esta semana en Valley Fresh Market. Aprueba con un toque, sin cuenta.'),!S.approved&&!S.flagged,'openMail',!S.approved) : '';
+  return `<div class="app mail">
+    <div class="mail-nav"><button class="back">${I.chev}<span>${L('Mailboxes','Buzones')}</span></button><span style="color:var(--mail-blue);font-weight:600">${L('Edit','Editar')}</span></div>
+    <div class="mail-head"><h2>${L('Inbox','Bandeja')}</h2><div class="search">${L('Search','Buscar')}</div></div>
+    <div class="scroll" style="padding:0">${inc}
+      ${row('Valley Fresh Ops','11:40 AM',L('Holiday schedule draft','Borrador de horario festivo'),L('Please review the Thanksgiving week schedule before Friday…','Por favor revisa el horario de la semana de Thanksgiving antes del viernes…'),false)}
+      ${row(L('Delivery Desk','Recepción'),L('Yesterday','Ayer'),L('Produce truck arriving early','El camión de frutas llega temprano'),L('Thursday’s produce delivery moves to 6:30 AM…','La entrega del jueves se mueve a las 6:30 AM…'),false)}
+      ${S.sent?'':`<div class="t-meta" style="text-align:center;padding:22px 18px">${L('Waiting for Marcus to send his hours.','Esperando a que Marcus envíe sus horas.')}</div>`}
+    </div></div>`;
+}
+function mailOpen(){
+  const days=[[L('Mon','Lun'),9],[L('Tue','Mar'),10],[L('Wed','Mié'),11],[L('Thu','Jue'),12]];
+  const rows=days.map(([d,n])=>`<tr><td>${d} ${L('Nov '+n, n+' nov')}</td><td>10:00 – 2:00</td><td>4.0</td></tr>`).join('');
+  return `<div class="app mail">
+    <div class="mail-nav"><button class="back" data-act="mailBack">${I.chev}<span>${L('Inbox','Bandeja')}</span></button><span></span></div>
+    <div class="scroll" style="padding:0">
+      <div class="em-head"><h3>${L('Marcus Reyes’s hours need your OK','Las horas de Marcus Reyes necesitan tu OK')}</h3>
+        <div class="em-from"><span class="avatar" style="background:var(--a-brand);width:36px;height:36px;flex-basis:36px">Al</span><div class="grow"><b>${L('Almova for Ultra Services','Almova para Ultra Services')}</b><div style="color:#8A8A8E;font-size:13px">${L('to me','para mí')} · 2:02 PM</div></div></div></div>
+      <div class="em-body">
+        <div>${L('Hi Mike,','Hola Mike:')}</div>
+        <div style="margin-top:8px">${L('Marcus Reyes worked these hours at Valley Fresh Market this week. Please check that they’re right.','Marcus Reyes trabajó estas horas en Valley Fresh Market esta semana. Por favor confirma que estén correctas.')}</div>
+        <div class="em-card">
+          <div class="em-brand">Almova<small>Marcus Reyes · Valley Fresh Market</small></div>
+          <table class="hrs"><thead><tr><th>${L('Day','Día')}</th><th>${L('Time','Horario')}</th><th>${L('Hours','Horas')}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Total</td><td></td><td>16.0</td></tr></tfoot></table>
+          <div class="sig"><label for="sigName">${L('Your signature','Tu firma')}</label><input type="text" id="sigName" value="${esc(S.sigName)}" autocomplete="off">
+            <label class="confirm" for="sigConfirm"><input type="checkbox" id="sigConfirm" data-act="confirm"><span style="color:#111;font-weight:500">${L('I confirm these hours are correct.','Confirmo que estas horas son correctas.')}</span></label></div>
+          <div class="em-actions"><button class="btn" id="approveBtn" data-act="approve" disabled>${L('Approve hours','Aprobar horas')}</button><button class="linkbtn" data-act="wrong">${L('Something’s wrong','Algo está mal')}</button></div>
+        </div>
+        <div class="fine">${L('You don’t need an Almova account. This secure link works once and expires in 7 days. Sent on behalf of Ultra Services Inc.','No necesitas una cuenta de Almova. Este enlace seguro funciona una vez y vence en 7 días. Enviado en nombre de Ultra Services Inc.')}</div>
+      </div></div></div>`;
+}
+function mailDone(){
+  return `<div class="app mail"><div class="webbar"><span>🔒 approve.almova.org</span></div>
+    <div class="scroll" style="padding:0 20px">
+      <div class="success" style="padding-top:44px"><div class="ring">✓</div><h3 style="font-family:var(--f-display)">${L('Hours approved','Horas aprobadas')}</h3><div style="color:#555;font-size:15px;line-height:1.5">${L('Thank you, Mike. Marcus and Ultra Services have been notified.','Gracias, Mike. Marcus y Ultra Services ya fueron notificados.')}</div></div>
+      <div class="card" style="background:#FAFAFB"><dl class="kv"><dt>${L('Employee','Empleado')}</dt><dd>Marcus Reyes</dd><dt>Total</dt><dd>16.0 ${L('hours','horas')}</dd><dt>${L('Signed by','Firmado por')}</dt><dd style="font-family:'Caveat','Brush Script MT',cursive;font-size:24px;font-weight:600">${esc(S.sigName)}</dd><dt>${L('Date','Fecha')}</dt><dd>${L('Thu, Nov 12, 2:14 PM','jue, 12 nov, 2:14 PM')}</dd></dl></div>
+      <button class="linkbtn" data-act="mailBack" style="display:block;margin:16px auto">${L('Inbox','Bandeja')}</button>
+    </div></div>`;
+}
+function mailWrong(){
+  if(S.flagged) return `<div class="app mail"><div class="webbar"><span>🔒 approve.almova.org</span></div><div class="scroll"><div class="success" style="padding-top:44px"><div class="ring">💬</div><h3 style="font-family:var(--f-display)">${L('Thanks, Mike','Gracias, Mike')}</h3><div style="color:#555">${L('Ultra Services will fix the hours and send them back to you.','Ultra Services corregirá las horas y te las enviará de nuevo.')}</div></div><button class="linkbtn" data-act="unflag" style="display:block;margin:0 auto">${L('Undo (demo)','Deshacer (demo)')}</button></div></div>`;
+  return `<div class="app mail"><div class="webbar"><span>🔒 approve.almova.org</span></div>
+    <div class="mail-nav"><button class="back" data-act="openMail">${I.chev}<span>${L('Back','Atrás')}</span></button><span></span></div>
+    <div class="scroll stack" style="padding:6px 20px"><h3 style="font-family:var(--f-display);font-size:24px;margin:0">${L('What looks wrong?','¿Qué está mal?')}</h3>
+      <textarea id="wrongNote" placeholder="${esc(L('Example: Tuesday he left at 1:00, not 2:00.','Ejemplo: el martes salió a la 1:00, no a las 2:00.'))}"></textarea>
+      <button class="btn" data-act="sendFlag">${L('Send to Ultra Services','Enviar a Ultra Services')}</button></div></div>`;
+}
+
+/* ================= steps ================= */
+const STEPS = [
+  {who:'agency', en:'Marcus is flagged', es:'Marcus aparece marcado',
+   talk:['Start on the agency side. This is Ultra Services’ caseload. Marcus’s Medi-Cal renewal is due in 21 days and his form isn’t signed, so he is flagged red. Open Marcus: his pay stubs were attached automatically from Ultra’s payroll, so nobody chases paperwork. Assign Lena to help him sign. Then show the AI letter reader and its “Pending DDS approval” label.',
+         'Empieza del lado de la agencia. Estos son los casos de Ultra Services. La renovación de Medi-Cal de Marcus vence en 21 días y su formulario no está firmado, por eso está en rojo. Abre a Marcus: sus talones se adjuntaron automáticamente desde la nómina de Ultra, así que nadie persigue papeles. Asigna a Lena para ayudarle a firmar. Luego muestra el lector de cartas con IA y su etiqueta “Pendiente de aprobación DDS”.']},
+  {who:'lena', en:'Lena gets a task', es:'Lena recibe una tarea',
+   talk:['Lena, his support worker, gets the task on her phone: help Marcus sign his renewal form by Friday. The pay stubs are already there. She goes over the form with him in plain language, Marcus signs, and the photo goes into his Vault. Marcus decides, Lena helps.',
+         'Lena, su trabajadora de apoyo, recibe la tarea en su teléfono: ayudar a Marcus a firmar su formulario antes del viernes. Los talones ya están ahí. Revisa el formulario con él en lenguaje sencillo, Marcus firma y la foto se guarda en su Vault. Marcus decide, Lena ayuda.']},
+  {who:'marcus', en:'Marcus stays in the loop', es:'Marcus se mantiene informado',
+   talk:['Pause here. Marcus sees his own update in plain words. Open “Who sees my updates”: he decides what his mom can see, invites his own circle, and sees who looked at his record. This is Almova built for adults.',
+         'Haz una pausa aquí. Marcus ve su propia novedad en palabras sencillas. Abre “Quién ve mis novedades”: él decide qué ve su mamá, invita a su propio círculo y ve quién revisó su expediente. Almova está hecho para adultos.']},
+  {who:'mom', en:'Family view and Vault', es:'Vista familiar y Vault',
+   talk:['His mom sees where things stand and what is next, only what Marcus shares. Try turning off a switch in Marcus’s view and come back. Then open the Vault: a record the family owns and can share with a QR code at a new doctor or agency.',
+         'Su mamá ve cómo van las cosas y qué sigue, solo lo que Marcus comparte. Prueba apagar un interruptor en la vista de Marcus y regresa. Luego abre el Vault: un expediente que es de la familia y se comparte con un código QR con un nuevo doctor o agencia.']},
+  {who:'marcus', next:true, en:'Marcus sends hours', es:'Marcus envía horas',
+   talk:['Next, what IRC asked us for: employment tracking. Marcus ends his shift and sends his hours with one tap.',
+         'Lo siguiente, lo que IRC nos pidió: seguimiento de empleo. Marcus termina su turno y envía sus horas con un toque.']},
+  {who:'mike', next:true, en:'Supervisor approves', es:'El supervisor aprueba',
+   talk:['His supervisor, Mike, gets an email. He checks the hours, signs, and approves right there. No app, no account.',
+         'Su supervisor, Mike, recibe un correo. Revisa las horas, firma y aprueba ahí mismo. Sin app, sin cuenta.']},
+  {who:'mom', next:true, en:'Everyone sees it', es:'Todos lo ven',
+   talk:['The approval is logged, Marcus sees it, and because Marcus shares his work, his mom gets the notification too.',
+         'La aprobación queda registrada, Marcus la ve y, como Marcus comparte su trabajo, su mamá también recibe la notificación.']}
+];
+function goStep(i){
+  i=Math.max(0,Math.min(STEPS.length-1,i)); S.step=i;
+  const base={ag:'list',scan:'idle',lena:'list',mk:'home',mom:'home',folder:null,mail:'inbox',flagged:false};
+  Object.assign(S, base, {who:STEPS[i].who});
+  S.taskSent = i>=1; S.taskDone = i>=2; S.stubs = [i>=2,i>=2];
+  S.shift = i>=4 ? 'ended' : 'working'; if(i===4) S.mk='work';
+  S.sent = i>=5; S.approved = i>=6; S.mail = i>=6 ? 'done' : 'inbox';
+  if(i>=6) S.share.work=true;
+  render();
+  if(i===6) setTimeout(()=>toast('Almova', L('Marcus’s 16 hours were approved by Mike. Payday Nov 15.','Las 16 horas de Marcus fueron aprobadas por Mike. Pago el 15 de nov.')), 400);
+}
+
+/* ================= render ================= */
+const app=document.getElementById('app'), screenEl=document.getElementById('screen');
+const WHO=[['agency',()=>L('Agency','Agencia')],['lena',()=>L('Caregiver (Lena)','Cuidadora (Lena)')],['marcus',()=>'Marcus'],['mom',()=>L('Family (Mom)','Familia (Mamá)')],['mike',()=>L('Supervisor','Supervisor')]];
+function render(){
+  document.documentElement.lang=S.lang;
+  document.getElementById('lblSample').textContent=L('Demo · sample data · Marcus is fictional','Demo · datos de ejemplo · Marcus es ficticio');
+  document.getElementById('lblSay').textContent=L('Say this','Qué decir');
+  document.getElementById('lblViewing').textContent=L('Viewing as','Viendo como');
+  document.getElementById('btnReset').textContent=L('Reset','Reiniciar');
+  document.getElementById('btnPresent').textContent=document.body.classList.contains('present')?L('Show controls','Mostrar controles'):L('Full screen app','App en pantalla completa');
+  document.getElementById('lang-en').setAttribute('aria-pressed',S.lang==='en');
+  document.getElementById('lang-es').setAttribute('aria-pressed',S.lang==='es');
+  let sh=''; STEPS.forEach((s,i)=>{ if(s.next && !STEPS[i-1].next) sh+=`<span class="stepsep">${L('Coming next','Lo que sigue')}</span>`;
+    sh+=`<button class="step ${s.next?'next':''}" data-act="step" data-v="${i}" ${i===S.step?'aria-current="step"':''}><i>${i+1}</i>${esc(L(s.en,s.es))}</button>`; });
+  document.getElementById('steps').innerHTML=sh;
+  document.getElementById('talk').textContent=STEPS[S.step].talk[S.lang==='es'?1:0];
+  document.getElementById('whoSeg').innerHTML=WHO.map(([w,f])=>`<button data-act="who" data-v="${w}" aria-pressed="${S.who===w}">${esc(f())}</button>`).join('');
+
+  let html='';
+  if(S.who==='agency') html = S.ag==='client'?agencyClient():S.ag==='reader'?agencyReader():agencyList();
+  else if(S.who==='lena') html = S.lena==='task'?lenaTask():lenaList();
+  else if(S.who==='marcus'){
+    if(S.mk==='privacy') html=marcusPrivacy(); else if(S.mk==='work') html=marcusWork();
+    else if(S.mk==='vault') html=vaultHome('marcus')+tabbar([['home','home',L('Home','Inicio'),'mkGo'],['privacy','people',L('My circle','Mi círculo'),'mkGo'],['vault','vault','Vault','mkVault']],'vault');
+    else if(S.mk==='folder') html=folderScreen(); else if(S.mk==='qr') html=qrScreen(); else html=marcusHome();
+  } else if(S.who==='mom'){
+    if(S.mom==='vault') html=vaultHome('mom')+tabbar([['home','home',L('Updates','Novedades'),'momGo'],['vault','vault','Vault','momVault']],'vault');
+    else if(S.mom==='folder') html=folderScreen(); else if(S.mom==='qr') html=qrScreen(); else html=momHome();
+  } else html = S.mail==='open'?mailOpen():S.mail==='done'?mailDone():S.mail==='wrong'?mailWrong():mailInbox();
+  app.innerHTML=html;
+  screenEl.style.background = S.who==='mike' ? '#fff' : '';
+  const cur=document.querySelector('.step[aria-current="step"]'); cur&&cur.scrollIntoView({block:'nearest',inline:'nearest'});
+  tick();
+}
+let timerSecs=3*3600+58*60+12, timerId=null;
+function tick(){ clearInterval(timerId); const el=document.getElementById('timer'); if(!el) return;
+  const f=()=>{ const h=Math.floor(timerSecs/3600), m=Math.floor(timerSecs%3600/60), s=timerSecs%60; el.textContent=`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; };
+  f(); timerId=setInterval(()=>{timerSecs++; f();},1000); }
+let toastTimer=null;
+function toast(title, body){ document.getElementById('toastT').textContent=title; document.getElementById('toastB').textContent=body;
+  const el=document.getElementById('toast'); el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3400); }
+
+const setView = (who) => { // where Vault/QR/folder live depends on who is looking
+  return who==='marcus' ? 'mk' : 'mom'; };
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act, v=b.dataset.v;
+  switch(a){
+    case 'lang': S.lang=v; render(); break;
+    case 'reset': S=JSON.parse(JSON.stringify(INIT)); timerSecs=3*3600+58*60+12; render(); break;
+    case 'present': document.body.classList.toggle('present'); render(); break;
+    case 'step': goStep(+v); break;
+    case 'prev': goStep(S.step-1); break;
+    case 'next': goStep(S.step+1); break;
+    case 'who': S.who=v; render(); break;
+    case 'agGo': S.ag=v; render(); break;
+    case 'openClient': S.ag='client'; render(); break;
+    case 'read': S.scan='reading'; render();
+      setTimeout(()=>{ if(S.scan!=='reading') return; S.scan='done'; render(); const sc=app.querySelector('.scroll'); sc&&sc.scrollTo({top:sc.scrollHeight,behavior:'smooth'}); },2200); break;
+    case 'sendTask': S.taskSent=true; render(); toast('Almova', L('Task sent to Lena: help Marcus sign his form.','Tarea enviada a Lena: ayudar a Marcus a firmar su formulario.')); break;
+    case 'lenaGo': S.lena=v; if(S.step<1) S.step=1; render(); break;
+    case 'stub': S.stubs[+v]=true; render(); break;
+    case 'taskDone': S.taskDone=true; if(S.step<2) S.step=1; render(); toast('Almova', L('Done. Marcus and Ultra Services can see it.','Listo. Marcus y Ultra Services ya lo ven.')); break;
+    case 'mkGo': S.mk=v; render(); break;
+    case 'mkVault': S.mk='vault'; render(); break;
+    case 'momGo': S.mom=v; render(); break;
+    case 'momVault': S.mom='vault'; render(); break;
+    case 'folder': S.folder=v; S[setView(S.who)]='folder'; render(); break;
+    case 'qr': S[setView(S.who)]='qr'; render(); break;
+    case 'vaultBack': S[setView(S.who)]='vault'; render(); break;
+    case 'share': S.share[v]=!S.share[v]; render(); break;
+    case 'invite': toast('Almova', L('Invite link ready. Marcus picks what they can see.','Enlace de invitación listo. Marcus elige qué pueden ver.')); break;
+    case 'endShift': S.shift='ended'; if(S.step<4) S.step=4; render(); break;
+    case 'sendHours': S.sent=true; render(); toast('Almova', L('Your hours were sent to Mike.','Tus horas se enviaron a Mike.'));
+      setTimeout(()=>{ if(S.who==='marcus' && S.sent && !S.approved){ S.who='mike'; S.mail='inbox'; S.step=5; render(); } },2400); break;
+    case 'openMail': S.mail=S.approved?'done':'open'; S.step=Math.max(S.step,5); render(); break;
+    case 'mailBack': S.mail='inbox'; render(); break;
+    case 'confirm': { const btn=document.getElementById('approveBtn'); if(btn) btn.disabled=!b.checked; break; }
+    case 'approve': { const n=document.getElementById('sigName'); S.sigName=(n&&n.value.trim())||'Mike Torres';
+      S.approved=true; S.mail='done'; render();
+      setTimeout(()=>{ if(S.approved && S.who==='mike'){ S.step=6;
+        if(S.share.work){ S.who='mom'; S.mom='home'; render(); toast('Almova', L('Marcus’s 16 hours were approved by Mike. Payday Nov 15.','Las 16 horas de Marcus fueron aprobadas por Mike. Pago el 15 de nov.')); }
+        else { S.who='marcus'; S.mk='work'; render(); toast('Almova', L('Mike approved your hours. Your mom wasn’t told, because you keep work private.','Mike aprobó tus horas. Tu mamá no fue avisada porque tu trabajo es privado.')); } } },2600); break; }
+    case 'wrong': S.mail='wrong'; render(); break;
+    case 'sendFlag': S.flagged=true; render(); break;
+    case 'unflag': S.flagged=false; S.mail='open'; render(); break;
+  }
+});
+document.addEventListener('keydown', e=>{ if(e.target.matches('input,textarea')) return;
+  if(e.key==='ArrowRight') goStep(S.step+1); if(e.key==='ArrowLeft') goStep(S.step-1); });
+render();
+})();
+</script>
+
+</body>
+</html>
