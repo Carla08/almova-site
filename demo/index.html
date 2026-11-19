@@ -334,7 +334,6 @@ const INIT = {
   lang:'en', who:'agency', step:0,
   ag:'list', scan:'idle',
   taskSent:false, stubs:[false,false], taskDone:false,
-  lena:'list',
   mk:'home', share:{benefits:true, work:true, health:false},
   mom:'home', folder:null, vaultBack:'home',
   shift:'working', sent:false, mail:'inbox', approved:false, flagged:false, sigName:'Mike Torres'
@@ -365,9 +364,9 @@ function renewal(){
     plain:L('You signed your renewal form. Ultra Services will send it to the county.','Firmaste tu formulario de renovación. Ultra Services lo enviará al condado.'),
     family:L('Marcus signed his renewal form. Next, Ultra Services sends it to the county.','Marcus firmó su formulario de renovación. Después, Ultra Services lo envía al condado.')};
   if(S.taskSent) return {lvl:'mid', chip:'c-sun', label:L('In progress','En proceso'), done:1,
-    agency:L('Pay stubs attached · Lena helping Marcus sign','Talones adjuntos · Lena ayuda a Marcus a firmar'),
-    plain:L('Your pay stubs are already attached. Lena will help you sign your form this week.','Tus talones de pago ya están adjuntos. Lena te ayudará a firmar tu formulario esta semana.'),
-    family:L('In progress. Pay stubs are attached. Lena is helping Marcus sign his form.','En proceso. Los talones ya están adjuntos. Lena ayuda a Marcus a firmar su formulario.')};
+    agency:L('Pay stubs attached · Maria helping Marcus sign','Talones adjuntos · María ayuda a Marcus a firmar'),
+    plain:L('Your pay stubs are already attached. Your mom will help you sign your form this week.','Tus talones de pago ya están adjuntos. Tu mamá te ayudará a firmar tu formulario esta semana.'),
+    family:L('In progress. Pay stubs are attached. Next, you help Marcus sign his form.','En proceso. Los talones ya están adjuntos. Sigue: ayudar a Marcus a firmar su formulario.')};
   return {lvl:'risk', chip:'c-alert', label:L('Needs signature','Falta firma'), done:1,
     agency:L('Pay stubs attached automatically · form not signed','Talones adjuntos automáticamente · formulario sin firmar'),
     plain:L('Your Medi-Cal needs to be renewed by December 3. Your pay stubs are already attached. Next, you sign the form.','Tu Medi-Cal se tiene que renovar antes del 3 de diciembre. Tus talones ya están adjuntos. Después, firmas el formulario.'),
@@ -410,9 +409,9 @@ function agencyClient(){
   const r=renewal();
   const person=(ini,col,name,role,see)=>`<div class="circle-row"><span class="ini" style="background:${col};width:32px;height:32px;flex-basis:32px;font-size:11px">${ini}</span><div class="grow"><div class="t-strong" style="font-size:14px">${esc(name)}</div><div class="t-meta">${esc(role)}</div></div><span class="t-meta" style="text-align:right;max-width:120px;font-size:12px">${esc(see)}</span></div>`;
   let action;
-  if(!S.taskSent) action=`<button class="btn" data-act="sendTask">${L('Ask Lena to help Marcus sign','Pedir a Lena que ayude a Marcus a firmar')}</button>
+  if(!S.taskSent) action=`<button class="btn" data-act="sendTask">${L('Ask Maria to help Marcus sign','Pedir a María que ayude a Marcus a firmar')}</button>
       <div class="t-meta" style="text-align:center">${L('Due Friday, Nov 13','Para el viernes 13 de nov')}</div>`;
-  else action=`<div class="card row" style="background:var(--a-ok-soft);border-color:transparent"><span style="font-size:20px">✓</span><div class="grow"><div class="t-strong">${S.taskDone?L('Lena finished the task','Lena terminó la tarea'):L('Task sent to Lena','Tarea enviada a Lena')}</div><div class="t-meta">${S.taskDone?L('Signed form saved to Marcus’s Vault','Formulario firmado guardado en el Vault de Marcus'):L('Help Marcus sign · by Fri Nov 13','Ayudar a Marcus a firmar · para vie 13 nov')}</div></div></div>`;
+  else action=`<div class="card row" style="background:var(--a-ok-soft);border-color:transparent"><span style="font-size:20px">✓</span><div class="grow"><div class="t-strong">${S.taskDone?L('Maria finished the task','María terminó la tarea'):L('Task sent to Maria','Tarea enviada a María')}</div><div class="t-meta">${S.taskDone?L('Signed form saved to Marcus’s Vault','Formulario firmado guardado en el Vault de Marcus'):L('Help Marcus sign · by Fri Nov 13','Ayudar a Marcus a firmar · para vie 13 nov')}</div></div></div>`;
   return `${topnav('agGo','list',L('Caseload','Casos'),'Marcus Reyes')}
   <div class="scroll stack" style="gap:12px">
     <div class="row"><span class="ini" style="background:var(--a-alert);width:52px;height:52px;flex-basis:52px;font-size:17px">MR</span><div class="grow"><div class="t-strong" style="font-size:18px">Marcus Reyes, 24</div><div class="t-meta">Inland Regional Center · ${L('Service code 490','Código de servicio 490')}</div></div></div>
@@ -430,8 +429,7 @@ function agencyClient(){
     <div class="a-sec" style="margin:8px 0 0">${L('Marcus’s circle','El círculo de Marcus')}</div>
     <div class="card" style="padding:4px 14px">
       ${person('MR','var(--a-alert)','Marcus',L('Client','Cliente'),L('Everything, his record','Todo, es su expediente'))}
-      ${person('MA','#8A4FB5','Maria Reyes',L('Mom','Mamá'),L('What Marcus shares','Lo que Marcus comparte'))}
-      ${person('LO','#0F6E64','Lena Ortiz',L('Support staff','Personal de apoyo'),L('Her assigned tasks','Sus tareas asignadas'))}
+      ${person('MA','#8A4FB5','Maria Reyes',L('Mom · caregiver','Mamá · cuidadora'),L('Her tasks + what Marcus shares','Sus tareas + lo que Marcus comparte'))}
       ${person('RA','#2F6FCB','Rosa Alvarez',L('IRC coordinator','Coordinadora IRC'),L('Status and risks','Estado y riesgos'))}
     </div>
     <div class="t-meta" style="display:flex;gap:6px;align-items:flex-start">${I.lock}<span>${L('Safety net: if this renewal goes quiet for 7 days, Almova alerts Rosa at IRC.','Red de seguridad: si esta renovación no avanza en 7 días, Almova avisa a Rosa en IRC.')}</span></div>
@@ -468,29 +466,11 @@ function agencyReader(){
   </div>`;
 }
 
-/* ================= CAREGIVER (Lena) ================= */
-function lenaList(){
-  const r=renewal();
-  const task = S.taskSent ? `<button class="client" data-act="lenaGo" data-v="task" style="${S.taskDone?'':'border:2px solid var(--a-brand)'}"><span class="stripe" style="background:var(${S.taskDone?'--a-ok':'--a-brand'})"></span><span class="ini" style="background:var(--a-alert)">MR</span><div class="grow"><div class="t-strong">${L('Help Marcus sign his Medi-Cal form','Ayudar a Marcus a firmar su formulario de Medi-Cal')}</div><div class="t-meta">${L('Marcus Reyes · by Fri Nov 13','Marcus Reyes · para vie 13 nov')}</div></div><span class="chip ${S.taskDone?'c-ok':'c-brand'}">${S.taskDone?L('Done','Listo'):L('New','Nueva')}</span></button>`
-    : `<div class="private">${L('No new tasks. Ultra Services will send them here.','Sin tareas nuevas. Ultra Services las enviará aquí.')}</div>`;
-  return `<div class="scroll">
-    <h1 class="a-h1">${L('Hi Lena','Hola Lena')}</h1>
-    <p class="a-sub">${L('Thursday, Nov 12 · 3 clients','Jueves 12 nov · 3 clientes')}</p>
-    <div class="a-sec">${L('Tasks','Tareas')}</div>
-    <div class="stack">${task}
-      <div class="client"><span class="stripe" style="background:var(--a-ok)"></span><span class="ini" style="background:#2F6FCB">AL</span><div class="grow"><div class="t-strong">${L('Bring Ana’s SSI letter to the office','Llevar la carta SSI de Ana a la oficina')}</div><div class="t-meta">${L('Ana López · done Tuesday','Ana López · hecho el martes')}</div></div><span class="chip c-ok">${L('Done','Listo')}</span></div>
-    </div>
-    <div class="a-sec">${L('My clients','Mis clientes')}</div>
-    <div class="card" style="padding:4px 14px">
-      ${[['MR','var(--a-alert)','Marcus Reyes',S.taskDone?L('Medi-Cal form signed','Formulario de Medi-Cal firmado'):L('Medi-Cal renewal due Dec 3','Medi-Cal vence 3 dic')],['AL','#2F6FCB','Ana López',L('All set','Todo en orden')],['JC','#1D8048','Jamal Carter',L('All set','Todo en orden')]].map(([i,c,n,m])=>`<div class="circle-row"><span class="ini" style="background:${c};width:32px;height:32px;flex-basis:32px;font-size:11px">${i}</span><div class="grow"><div class="t-strong" style="font-size:14px">${n}</div><div class="t-meta">${m}</div></div></div>`).join('')}
-    </div>
-    <div class="t-meta" style="display:flex;gap:6px;align-items:center;margin-top:14px">${I.lock}${L('You only see what you need for your assigned clients.','Solo ves lo necesario para tus clientes asignados.')}</div>
-  </div>`;
-}
-function lenaTask(){
+/* ================= CAREGIVER (Mom) ================= */
+function careTask(){
   const step=(i,label,sub,btn)=>{ const d=S.stubs[i]; return `<div class="item ${d?'done':''}"><span style="width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:0 0 28px;font-weight:800;background:#fff;color:var(--a-brand)">${i+1}</span><div class="grow"><div class="t-strong" style="font-size:14px">${label}</div><div class="t-meta">${sub}</div></div>${d?`<span class="mini ok">✓</span>`:`<button class="mini" data-act="stub" data-v="${i}" ${i===1&&!S.stubs[0]?'disabled style="opacity:.4"':''}>${btn}</button>`}</div>`; };
   const all=S.stubs.every(Boolean);
-  return `${topnav('lenaGo','list',L('Tasks','Tareas'),L('Task','Tarea'))}
+  return `${topnav('momGo','home',L('Home','Inicio'),L('Task','Tarea'))}
   <div class="scroll stack" style="gap:14px">
     <div><h2 class="a-h1" style="font-size:24px">${L('Help Marcus sign his Medi-Cal renewal form','Ayudar a Marcus a firmar su formulario de renovación de Medi-Cal')}</h2>
       <p class="a-sub">${L('Due Friday, Nov 13 · from Ultra Services','Para el viernes 13 de nov · de Ultra Services')}</p></div>
@@ -537,15 +517,15 @@ function marcusPrivacy(){
       ${sw('benefits',L('Benefits and paperwork','Beneficios y papeleo'),L('Medi-Cal, SSI, renewals','Medi-Cal, SSI, renovaciones'))}
       ${sw('work',L('My work','Mi trabajo'),L('Hours and payday','Horas y día de pago'))}
       ${sw('health',L('Health','Salud'),L('Doctors and medications','Doctores y medicamentos'))}
+      <div class="t-meta" style="padding:8px 0">${L('She always sees the tasks she is helping you with.','Siempre ve las tareas en las que te está ayudando.')}</div>
     </div>
     <div class="card" style="padding:6px 14px">
-      <div class="circle-row"><span class="ini" style="background:#0F6E64;width:32px;height:32px;flex-basis:32px;font-size:11px">LO</span><div class="grow"><div class="t-strong" style="font-size:15px">Lena</div><div class="t-meta">${L('Only tasks she helps you with','Solo las tareas en las que te ayuda')}</div></div></div>
       <div class="circle-row"><span class="ini" style="background:#2F6FCB;width:32px;height:32px;flex-basis:32px;font-size:11px">RA</span><div class="grow"><div class="t-strong" style="font-size:15px">Rosa · IRC</div><div class="t-meta">${L('Status, so she can help if something gets stuck','Estado, para ayudar si algo se atora')}</div></div></div>
     </div>
     <button class="btn secondary" data-act="invite">+ ${L('Add someone to my circle','Agregar a alguien a mi círculo')}</button>
     <div class="a-sec" style="margin:6px 0 0">${L('Who looked at my record','Quién vio mi expediente')}</div>
     <div class="card" style="padding:4px 14px">
-      ${S.taskDone?`<div class="log"><span>${L('Lena added your signed form','Lena agregó tu formulario firmado')}</span><span class="t-meta">${L('Today 2:10','Hoy 2:10')}</span></div>`:''}
+      ${S.taskDone?`<div class="log"><span>${L('Mom added your signed form','Mamá agregó tu formulario firmado')}</span><span class="t-meta">${L('Today 2:10','Hoy 2:10')}</span></div>`:''}
       <div class="log"><span>Cristian · Ultra Services</span><span class="t-meta">${L('Today 1:45','Hoy 1:45')}</span></div>
       <div class="log"><span>Rosa · IRC</span><span class="t-meta">${L('Nov 10','10 nov')}</span></div>
       <div class="log"><span>${L('Mom','Mamá')}</span><span class="t-meta">${L('Nov 9','9 nov')}</span></div>
@@ -575,9 +555,15 @@ function momHome(){
   if(S.approved) work=L('Mike approved Marcus’s 16 hours. Payday Nov 15.','Mike aprobó las 16 horas de Marcus. Pago el 15 de nov.');
   else if(S.sent) work=L('Marcus sent 16 hours to his supervisor.','Marcus envió 16 horas a su supervisor.');
   else work=L('Working this week · 12 hours so far','Trabajando esta semana · 12 horas hasta ahora');
+  const task = S.taskSent ? `<button class="client" data-act="momGo" data-v="task" style="${S.taskDone?'':'border:2px solid var(--a-brand)'}"><span class="stripe" style="background:var(${S.taskDone?'--a-ok':'--a-brand'})"></span><span class="ini" style="background:var(--a-alert)">MR</span><div class="grow"><div class="t-strong">${L('Help Marcus sign his Medi-Cal form','Ayudar a Marcus a firmar su formulario de Medi-Cal')}</div><div class="t-meta">${L('From Ultra Services · by Fri Nov 13','De Ultra Services · para vie 13 nov')}</div></div><span class="chip ${S.taskDone?'c-ok':'c-brand'}">${S.taskDone?L('Done','Listo'):L('New','Nueva')}</span></button>`
+    : `<div class="private">${L('No tasks right now. Ultra Services will send them here.','Sin tareas por ahora. Ultra Services las enviará aquí.')}</div>`;
   return `<div class="scroll">
-    <h1 class="a-h1">${L('Marcus’s updates','Novedades de Marcus')}</h1>
-    <p class="a-sub">${L('Shared with you by Marcus','Marcus las comparte contigo')}</p>
+    <h1 class="a-h1">${L('Hi Maria','Hola María')}</h1>
+    <p class="a-sub">${L('Caregiver for Marcus','Cuidadora de Marcus')}</p>
+    <div class="a-sec">${L('Your tasks','Tus tareas')}</div>
+    ${task}
+    <h2 class="a-h1" style="font-size:21px;margin-top:24px">${L('Marcus’s updates','Novedades de Marcus')}</h2>
+    <p class="a-sub">${L('Only what Marcus shares with you','Solo lo que Marcus comparte contigo')}</p>
     <div class="a-sec">${L('Benefits','Beneficios')}</div>
     ${S.share.benefits?`<div class="card"><div class="row"><div class="grow t-strong">${L('Medi-Cal renewal','Renovación de Medi-Cal')}</div><span class="chip ${r.chip}">${esc(r.label)}</span></div>
       <p style="margin:8px 0 0;font-size:15.5px;line-height:1.45">${esc(r.family)}</p>
@@ -589,7 +575,7 @@ function momHome(){
     <div class="a-sec">${L('Health','Salud')}</div>
     ${S.share.health?`<div class="card"><div class="t-strong">${L('Nothing due','Nada pendiente')}</div><div class="t-meta">${L('Medication list updated in October','Lista de medicamentos actualizada en octubre')}</div></div>`
       : lockCard(L('Marcus keeps his health private right now.','Marcus mantiene su salud en privado por ahora.'))}
-  </div>${tabbar([['home','home',L('Updates','Novedades'),'momGo'],['vault','vault','Vault','momVault']],S.mom==='home'?'home':'vault')}`;
+  </div>${tabbar([['home','home',L('Home','Inicio'),'momGo'],['vault','vault','Vault','momVault']],S.mom==='home'?'home':'vault')}`;
 }
 
 /* ================= VAULT (shared by Marcus and family) ================= */
@@ -601,7 +587,7 @@ const FOLDERS = {
       docRow('HRS',L('Timesheet · Nov 9–15','Horas · 9–15 nov'), S.approved?L('Approved by Mike Torres','Aprobado por Mike Torres'):(S.sent?L('Waiting for Mike','Esperando a Mike'):L('In progress','En curso'))),
       docRow('JOB',L('Job agreement','Acuerdo de trabajo'),'Ultra Services · Valley Fresh Market') ] },
   paperwork:{ name:()=>L('Benefits & paperwork','Beneficios y papeleo'), sub:()=>L('Medi-Cal, SSI, IPP','Medi-Cal, SSI, IPP'), soft:'--a-alert-soft', color:'--a-alert',
-    items:()=>[ ...(S.taskDone?[docRow('MC',L('Signed renewal form (MC 216)','Formulario de renovación firmado (MC 216)'),L('Added by Lena today','Agregado por Lena hoy'),true)]:[]), docRow('PDF',L('Medi-Cal renewal letter','Carta de renovación de Medi-Cal'),L('County of Riverside · Nov 3','Condado de Riverside · 3 nov')),
+    items:()=>[ ...(S.taskDone?[docRow('MC',L('Signed renewal form (MC 216)','Formulario de renovación firmado (MC 216)'),L('Added by Mom today','Agregado por mamá hoy'),true)]:[]), docRow('PDF',L('Medi-Cal renewal letter','Carta de renovación de Medi-Cal'),L('County of Riverside · Nov 3','Condado de Riverside · 3 nov')),
       docRow('ID',L('Medi-Cal card','Tarjeta de Medi-Cal'),L('Front and back','Frente y reverso')), docRow('SSI',L('SSI award letter','Carta de beneficio SSI'),L('Social Security · Jan 2026','Seguro Social · ene 2026')), docRow('IPP','IPP 2026–27','Inland Regional Center') ] },
   medical:{ name:()=>L('Medical','Médico'), sub:()=>L('Evaluations, medications','Evaluaciones, medicamentos'), soft:'--a-sky-soft', color:'--a-sky',
     items:()=>[ docRow('PDF',L('Diagnostic evaluation','Evaluación diagnóstica'),L('Psychologist report','Reporte del psicólogo')), docRow('RX',L('Medication list','Lista de medicamentos'),L('Updated Oct 2026','Actualizada oct 2026')) ] }
@@ -697,17 +683,17 @@ function mailWrong(){
 /* ================= steps ================= */
 const STEPS = [
   {who:'agency', en:'Marcus is flagged', es:'Marcus aparece marcado',
-   talk:['Start on the agency side. This is Ultra Services’ caseload. Marcus’s Medi-Cal renewal is due in 21 days and his form isn’t signed, so he is flagged red. Open Marcus: his pay stubs were attached automatically from Ultra’s payroll, so nobody chases paperwork. Assign Lena to help him sign. Then show the AI letter reader and its “Pending DDS approval” label.',
-         'Empieza del lado de la agencia. Estos son los casos de Ultra Services. La renovación de Medi-Cal de Marcus vence en 21 días y su formulario no está firmado, por eso está en rojo. Abre a Marcus: sus talones se adjuntaron automáticamente desde la nómina de Ultra, así que nadie persigue papeles. Asigna a Lena para ayudarle a firmar. Luego muestra el lector de cartas con IA y su etiqueta “Pendiente de aprobación DDS”.']},
-  {who:'lena', en:'Lena gets a task', es:'Lena recibe una tarea',
-   talk:['Lena, his support worker, gets the task on her phone: help Marcus sign his renewal form by Friday. The pay stubs are already there. She goes over the form with him in plain language, Marcus signs, and the photo goes into his Vault. Marcus decides, Lena helps.',
-         'Lena, su trabajadora de apoyo, recibe la tarea en su teléfono: ayudar a Marcus a firmar su formulario antes del viernes. Los talones ya están ahí. Revisa el formulario con él en lenguaje sencillo, Marcus firma y la foto se guarda en su Vault. Marcus decide, Lena ayuda.']},
+   talk:['Start on the agency side. This is Ultra Services’ caseload. Marcus’s Medi-Cal renewal is due in 21 days and his form isn’t signed, so he is flagged red. Open Marcus: his pay stubs were attached automatically from Ultra’s payroll, so nobody chases paperwork. Ask his mom, Maria, to help him sign. Then show the AI letter reader and its “Pending DDS approval” label.',
+         'Empieza del lado de la agencia. Estos son los casos de Ultra Services. La renovación de Medi-Cal de Marcus vence en 21 días y su formulario no está firmado, por eso está en rojo. Abre a Marcus: sus talones se adjuntaron automáticamente desde la nómina de Ultra, así que nadie persigue papeles. Pide a su mamá, María, que le ayude a firmar. Luego muestra el lector de cartas con IA y su etiqueta “Pendiente de aprobación DDS”.']},
+  {who:'mom', en:'Mom gets a task', es:'Mamá recibe una tarea',
+   talk:['Maria, his mom and caregiver, gets the task on her phone: help Marcus sign his renewal form by Friday. The pay stubs are already there. She goes over the form with him in plain language, Marcus signs, and the photo goes into his Vault. Marcus decides, his mom helps.',
+         'María, su mamá y cuidadora, recibe la tarea en su teléfono: ayudar a Marcus a firmar su formulario antes del viernes. Los talones ya están ahí. Revisa el formulario con él en lenguaje sencillo, Marcus firma y la foto se guarda en su Vault. Marcus decide, su mamá ayuda.']},
   {who:'marcus', en:'Marcus stays in the loop', es:'Marcus se mantiene informado',
    talk:['Pause here. Marcus sees his own update in plain words. Open “Who sees my updates”: he decides what his mom can see, invites his own circle, and sees who looked at his record. This is Almova built for adults.',
          'Haz una pausa aquí. Marcus ve su propia novedad en palabras sencillas. Abre “Quién ve mis novedades”: él decide qué ve su mamá, invita a su propio círculo y ve quién revisó su expediente. Almova está hecho para adultos.']},
-  {who:'mom', en:'Family view and Vault', es:'Vista familiar y Vault',
-   talk:['His mom sees where things stand and what is next, only what Marcus shares. Try turning off a switch in Marcus’s view and come back. Then open the Vault: a record the family owns and can share with a QR code at a new doctor or agency.',
-         'Su mamá ve cómo van las cosas y qué sigue, solo lo que Marcus comparte. Prueba apagar un interruptor en la vista de Marcus y regresa. Luego abre el Vault: un expediente que es de la familia y se comparte con un código QR con un nuevo doctor o agencia.']},
+  {who:'mom', en:'Mom’s view and Vault', es:'Vista de mamá y Vault',
+   talk:['Back in Maria’s app: her task is done, and below it she sees where Marcus’s benefits stand, only what Marcus shares. Try turning off a switch in Marcus’s view and come back. Then open the Vault: a record the family owns and can share with a QR code at a new doctor or agency.',
+         'De vuelta en la app de María: su tarea está lista y abajo ve cómo van los beneficios de Marcus, solo lo que Marcus comparte. Prueba apagar un interruptor en la vista de Marcus y regresa. Luego abre el Vault: un expediente que es de la familia y se comparte con un código QR con un nuevo doctor o agencia.']},
   {who:'marcus', next:true, en:'Marcus sends hours', es:'Marcus envía horas',
    talk:['Next, what IRC asked us for: employment tracking. Marcus ends his shift and sends his hours with one tap.',
          'Lo siguiente, lo que IRC nos pidió: seguimiento de empleo. Marcus termina su turno y envía sus horas con un toque.']},
@@ -720,7 +706,7 @@ const STEPS = [
 ];
 function goStep(i){
   i=Math.max(0,Math.min(STEPS.length-1,i)); S.step=i;
-  const base={ag:'list',scan:'idle',lena:'list',mk:'home',mom:'home',folder:null,mail:'inbox',flagged:false};
+  const base={ag:'list',scan:'idle',mk:'home',mom:'home',folder:null,mail:'inbox',flagged:false};
   Object.assign(S, base, {who:STEPS[i].who});
   S.taskSent = i>=1; S.taskDone = i>=2; S.stubs = [i>=2,i>=2];
   S.shift = i>=4 ? 'ended' : 'working'; if(i===4) S.mk='work';
@@ -732,7 +718,7 @@ function goStep(i){
 
 /* ================= render ================= */
 const app=document.getElementById('app'), screenEl=document.getElementById('screen');
-const WHO=[['agency',()=>L('Agency','Agencia')],['lena',()=>L('Caregiver (Lena)','Cuidadora (Lena)')],['marcus',()=>'Marcus'],['mom',()=>L('Family (Mom)','Familia (Mamá)')],['mike',()=>L('Supervisor','Supervisor')]];
+const WHO=[['agency',()=>L('Agency','Agencia')],['marcus',()=>'Marcus'],['mom',()=>L('Mom (caregiver)','Mamá (cuidadora)')],['mike',()=>L('Supervisor','Supervisor')]];
 function render(){
   document.documentElement.lang=S.lang;
   document.getElementById('lblSample').textContent=L('Demo · sample data · Marcus is fictional','Demo · datos de ejemplo · Marcus es ficticio');
@@ -750,14 +736,13 @@ function render(){
 
   let html='';
   if(S.who==='agency') html = S.ag==='client'?agencyClient():S.ag==='reader'?agencyReader():agencyList();
-  else if(S.who==='lena') html = S.lena==='task'?lenaTask():lenaList();
   else if(S.who==='marcus'){
     if(S.mk==='privacy') html=marcusPrivacy(); else if(S.mk==='work') html=marcusWork();
     else if(S.mk==='vault') html=vaultHome('marcus')+tabbar([['home','home',L('Home','Inicio'),'mkGo'],['privacy','people',L('My circle','Mi círculo'),'mkGo'],['vault','vault','Vault','mkVault']],'vault');
     else if(S.mk==='folder') html=folderScreen(); else if(S.mk==='qr') html=qrScreen(); else html=marcusHome();
   } else if(S.who==='mom'){
-    if(S.mom==='vault') html=vaultHome('mom')+tabbar([['home','home',L('Updates','Novedades'),'momGo'],['vault','vault','Vault','momVault']],'vault');
-    else if(S.mom==='folder') html=folderScreen(); else if(S.mom==='qr') html=qrScreen(); else html=momHome();
+    if(S.mom==='vault') html=vaultHome('mom')+tabbar([['home','home',L('Home','Inicio'),'momGo'],['vault','vault','Vault','momVault']],'vault');
+    else if(S.mom==='task') html=careTask(); else if(S.mom==='folder') html=folderScreen(); else if(S.mom==='qr') html=qrScreen(); else html=momHome();
   } else html = S.mail==='open'?mailOpen():S.mail==='done'?mailDone():S.mail==='wrong'?mailWrong():mailInbox();
   app.innerHTML=html;
   screenEl.style.background = S.who==='mike' ? '#fff' : '';
@@ -789,13 +774,12 @@ document.addEventListener('click', e=>{
     case 'openClient': S.ag='client'; render(); break;
     case 'read': S.scan='reading'; render();
       setTimeout(()=>{ if(S.scan!=='reading') return; S.scan='done'; render(); const sc=app.querySelector('.scroll'); sc&&sc.scrollTo({top:sc.scrollHeight,behavior:'smooth'}); },2200); break;
-    case 'sendTask': S.taskSent=true; render(); toast('Almova', L('Task sent to Lena: help Marcus sign his form.','Tarea enviada a Lena: ayudar a Marcus a firmar su formulario.')); break;
-    case 'lenaGo': S.lena=v; if(S.step<1) S.step=1; render(); break;
+    case 'sendTask': S.taskSent=true; render(); toast('Almova', L('Task sent to Maria: help Marcus sign his form.','Tarea enviada a María: ayudar a Marcus a firmar su formulario.')); break;
     case 'stub': S.stubs[+v]=true; render(); break;
     case 'taskDone': S.taskDone=true; if(S.step<2) S.step=1; render(); toast('Almova', L('Done. Marcus and Ultra Services can see it.','Listo. Marcus y Ultra Services ya lo ven.')); break;
     case 'mkGo': S.mk=v; render(); break;
     case 'mkVault': S.mk='vault'; render(); break;
-    case 'momGo': S.mom=v; render(); break;
+    case 'momGo': S.mom=v; if(v==='task'&&S.step<1) S.step=1; render(); break;
     case 'momVault': S.mom='vault'; render(); break;
     case 'folder': S.folder=v; S[setView(S.who)]='folder'; render(); break;
     case 'qr': S[setView(S.who)]='qr'; render(); break;
