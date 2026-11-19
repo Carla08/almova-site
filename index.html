@@ -140,7 +140,11 @@ header .btn{padding:10px 16px; font-size:15px}
 
 /* team + contact */
 .team{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:36px}
-.person{display:flex; gap:16px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:20px}
+.person{display:flex; gap:18px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:22px}
+.person > div{min-width:0}
+.person .bio{color:var(--muted); font-size:15.5px; margin-top:10px}
+.person .li{display:inline-block; margin-top:10px; font-size:14px; font-weight:700; text-decoration:none}
+.person .li:hover{text-decoration:underline}
 .avatar{width:96px; height:96px; border-radius:50%; object-fit:cover; background:var(--brand-soft); flex:0 0 96px}
 .person .t{color:var(--muted); font-size:15px}
 .contact{margin-top:56px; background:var(--brand); color:var(--brand-ink); border-radius:28px; padding:44px; display:flex; flex-wrap:wrap; gap:24px; align-items:center; justify-content:space-between}
@@ -297,8 +301,8 @@ footer .wrap{display:flex; flex-wrap:wrap; gap:12px; justify-content:space-betwe
       <h2>Built from inside the system.</h2>
       <p class="lede" style="margin-top:16px">Almova comes from the team behind Ultra Services, which provides FMS and co-employment support for adults with special needs as a Regional Center vendor. We built Almova to solve the problem we see every day.</p>
       <div class="team">
-        <div class="person"><img class="avatar" src="img/cristian.webp" alt="Cristian Castro" width="96" height="96" loading="lazy"><div><h3>Cristian Castro</h3><div class="t">Founder · Ultra Services</div></div></div>
-        <div class="person"><img class="avatar" src="img/carla.webp" alt="Carla Prieto" width="96" height="96" loading="lazy"><div><h3>Carla Prieto</h3><div class="t">Co-founder · Engineering</div></div></div>
+        <div class="person"><img class="avatar" src="img/cristian.webp" alt="Cristian Castro" width="96" height="96" loading="lazy"><div><h3>Cristian Castro</h3><div class="t">Founder · Ultra Services</div><p class="bio">Cristian founded Ultra Services, a co-employment partner to families and Regional Centers that runs payroll, benefits, and HR so adults with developmental disabilities can work. Before that, he worked in B2B sales at Cintas. He sees firsthand the paperwork gaps Almova is built to close.</p><a class="li" href="https://www.linkedin.com/in/c-castro" target="_blank" rel="noopener">LinkedIn ↗</a></div></div>
+        <div class="person"><img class="avatar" src="img/carla.webp" alt="Carla Prieto" width="96" height="96" loading="lazy"><div><h3>Carla Prieto</h3><div class="t">Co-founder · Engineering</div><p class="bio">Carla is an AI engineer with about seven years building data pipelines and machine learning systems, including Amazon Go at Amazon. She holds a master’s in data science from UC Berkeley and has trained nonprofit teams across Mexico to use AI in their daily work.</p><a class="li" href="https://www.linkedin.com/in/carlaprieto" target="_blank" rel="noopener">LinkedIn ↗</a></div></div>
       </div>
       <div class="contact">
         <div><h2>Work with us</h2><p>Regional Centers, vendors, and funders: we'd love to talk.</p></div>
